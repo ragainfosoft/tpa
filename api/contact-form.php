@@ -56,17 +56,17 @@ $sourceMap = [
 ];
 $sourceFinal = 'Website';
 foreach ($sourceMap as $key => $val) {
-    if (str_contains(strtolower($rawSource), $key)) { $sourceFinal = $val; break; }
+    if (strpos(strtolower($rawSource), $key) !== false) { $sourceFinal = $val; break; }
 }
-if (str_starts_with($rawSource, 'Website')) $sourceFinal = 'Website';
+if (strpos($rawSource, 'Website') === 0) $sourceFinal = 'Website';
 
 // Normalise centre to DB values
 $centreNorm = 'No preference';
 $cl = strtolower($centre);
-if (str_contains($cl, 'romford') || str_contains($cl, 'chadwell')) $centreNorm = 'Chadwell Heath';
-elseif (str_contains($cl, 'chelmsford'))                            $centreNorm = 'Chelmsford';
-elseif (str_contains($cl, 'online'))                                $centreNorm = 'Online';
-elseif (str_contains($cl, 'parkwood'))                              $centreNorm = 'Parkwood Academy';
+if (strpos($cl, 'romford') !== false || strpos($cl, 'chadwell') !== false) $centreNorm = 'Chadwell Heath';
+elseif (strpos($cl, 'chelmsford') !== false)                               $centreNorm = 'Chelmsford';
+elseif (strpos($cl, 'online') !== false)                                   $centreNorm = 'Online';
+elseif (strpos($cl, 'parkwood') !== false)                                 $centreNorm = 'Parkwood Academy';
 elseif ($centre && $centre !== 'No preference')                     $centreNorm = $centre; // pass-through for future partner schools
 $centre = $centreNorm;
 

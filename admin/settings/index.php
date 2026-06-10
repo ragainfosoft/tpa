@@ -116,7 +116,7 @@ function sval(array $cfg, string $key): string { return htmlspecialchars($cfg[$k
         <?php foreach (['gocardless_access_token'=>'Access Token','gocardless_environment'=>'Environment (sandbox / live)','gocardless_webhook_secret'=>'Webhook Signing Secret'] as $k=>$l): ?>
         <div class="col-sm-6">
           <label class="form-label fw-600 small"><?= $l ?></label>
-          <input type="<?= str_contains($k,'secret')||str_contains($k,'token')?'password':'text' ?>" name="settings[<?= $k ?>]" class="form-control" value="<?= sval($cfg,$k) ?>" autocomplete="off">
+          <input type="<?= (strpos($k,'secret')!==false||strpos($k,'token')!==false)?'password':'text' ?>" name="settings[<?= $k ?>]" class="form-control" value="<?= sval($cfg,$k) ?>" autocomplete="off">
         </div>
         <?php endforeach; ?>
         <div class="col-12">
