@@ -1,0 +1,31 @@
+# Dependencies
+vendor/
+
+# Sensitive config — keep local only, set manually on server
+admin/includes/config.php
+
+# Archives / local zips
+*.zip
+*.tar.gz
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# PHP error logs
+*.log
+php_errors.log
+
+# Uploaded files (if any user-upload dir exists)
+uploads/
+storage/
+
+# Environment files
+.env
+.env.local

@@ -1,0 +1,10 @@
+{
+  "name": "Talent Pool Academy",
+  "short_name": "TPA",
+  "icons": [
+    { "src": "/images/favicon-192.png", "sizes": "192x192", "type": "image/png" }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "browser"
+}
