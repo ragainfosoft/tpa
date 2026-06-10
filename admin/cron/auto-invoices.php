@@ -40,13 +40,12 @@ foreach ($schedules as $sch) {
     $amount     = (float) $sch['amount'];
 
     // Period label
-    $periodLabel = match($sch['frequency']) {
-        'monthly'     => date('F Y', strtotime($dueDate)),
-        'termly'      => getTermLabel($dueDate),
-        'half_termly' => 'Half Term ' . date('M Y', strtotime($dueDate)),
-        'annual'      => 'Annual 20' . date('Y', strtotime($dueDate)),
-        default       => date('F Y', strtotime($dueDate)),
-    };
+    $_freq = $sch['frequency'];
+    if ($_freq === 'monthly')          $periodLabel = date('F Y', strtotime($dueDate));
+    elseif ($_freq === 'termly')       $periodLabel = getTermLabel($dueDate);
+    elseif ($_freq === 'half_termly')  $periodLabel = 'Half Term ' . date('M Y', strtotime($dueDate));
+    elseif ($_freq === 'annual')       $periodLabel = 'Annual 20' . date('Y', strtotime($dueDate));
+    else                               $periodLabel = date('F Y', strtotime($dueDate));
 
     // Create invoice
     $db->prepare("INSERT INTO invoices (invoice_number, student_id, schedule_id, amount, discount, amount_due, period_label, due_date, status, created_by)
@@ -80,17 +79,14 @@ echo "[" . date('Y-m-d H:i:s') . "] Done. Created $created invoices.\n";
 
 // ── Helpers ──────────────────────────────────────────
 
-function calculateNextDate(string $fromDate, string $frequency): string {
-    return match($frequency) {
-        'per_session' => date('Y-m-d', strtotime($fromDate . ' +7 days')),
-        'weekly'      => date('Y-m-d', strtotime($fromDate . ' +7 days')),
-        'fortnightly' => date('Y-m-d', strtotime($fromDate . ' +14 days')),
-        'monthly'     => date('Y-m-d', strtotime($fromDate . ' +1 month')),
-        'half_termly' => date('Y-m-d', strtotime($fromDate . ' +7 weeks')),
-        'termly'      => date('Y-m-d', strtotime($fromDate . ' +4 months')),
-        'annual'      => date('Y-m-d', strtotime($fromDate . ' +1 year')),
-        default       => date('Y-m-d', strtotime($fromDate . ' +1 month')),
-    };
+function calculateNextDate($fromDate, $frequency) {
+    if ($frequency === 'per_session' || $frequency === 'weekly') return date('Y-m-d', strtotime($fromDate . ' +7 days'));
+    if ($frequency === 'fortnightly') return date('Y-m-d', strtotime($fromDate . ' +14 days'));
+    if ($frequency === 'monthly')     return date('Y-m-d', strtotime($fromDate . ' +1 month'));
+    if ($frequency === 'half_termly') return date('Y-m-d', strtotime($fromDate . ' +7 weeks'));
+    if ($frequency === 'termly')      return date('Y-m-d', strtotime($fromDate . ' +4 months'));
+    if ($frequency === 'annual')      return date('Y-m-d', strtotime($fromDate . ' +1 year'));
+    return date('Y-m-d', strtotime($fromDate . ' +1 month'));
 }
 
 function getTermLabel(string $date): string {

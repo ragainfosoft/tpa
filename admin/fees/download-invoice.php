@@ -66,12 +66,11 @@ $amountDue  = number_format((float)$invoice['amount_due'], 2);
 $paidStr    = number_format($totalPaid, 2);
 $balStr     = number_format($balanceDue, 2);
 $status     = strtoupper($invoice['status']);
-$statusClr  = match($invoice['status']) {
-    'paid'    => '#16a34a',
-    'overdue' => '#dc2626',
-    'partial' => '#d97706',
-    default   => '#2563eb',
-};
+$_sc = $invoice['status'];
+if ($_sc === 'paid')         $statusClr = '#16a34a';
+elseif ($_sc === 'overdue')  $statusClr = '#dc2626';
+elseif ($_sc === 'partial')  $statusClr = '#d97706';
+else                         $statusClr = '#2563eb';
 $description = $invoice['fee_plan_name'] ?? $invoice['period_label'] ?? 'Tuition Fee';
 $batchInfo   = $invoice['batch_name']
                 ? $invoice['batch_name'] . ($invoice['day_of_week'] ? ' (' . $invoice['day_of_week'] . ')' : '')

@@ -168,12 +168,11 @@ require_once __DIR__ . '/../includes/header.php';
       <?php foreach ($payments as $p):
         $isOnline  = in_array($p['gateway'], ['stripe','gocardless']);
         $isMatched = $p['reconciled'];
-        $gwLabel   = match($p['gateway']) {
-          'stripe'      => '<span class="badge" style="background:#6772e5;color:#fff;">Stripe</span>',
-          'gocardless'  => '<span class="badge" style="background:#2c97de;color:#fff;">GoCardless</span>',
-          'manual'      => '<span class="badge bg-secondary">Manual</span>',
-          default       => '<span class="badge bg-light text-dark border">'.h($p['method'] ?? '—').'</span>',
-        };
+        $gw = $p['gateway'] ?? '';
+        if ($gw === 'stripe')     $gwLabel = '<span class="badge" style="background:#6772e5;color:#fff;">Stripe</span>';
+        elseif ($gw === 'gocardless') $gwLabel = '<span class="badge" style="background:#2c97de;color:#fff;">GoCardless</span>';
+        elseif ($gw === 'manual') $gwLabel = '<span class="badge bg-secondary">Manual</span>';
+        else $gwLabel = '<span class="badge bg-light text-dark border">'.h($p['method'] ?? '—').'</span>';
       ?>
       <tr>
         <td class="small"><?= date('d M Y', strtotime($p['payment_date'])) ?></td>
