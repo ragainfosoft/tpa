@@ -2152,6 +2152,13 @@ a.contact-card-value:hover { color: var(--gold); }
   .tpa-topbar { display: none !important; }
 }
 
+/* --- Navbar: hide brand text on medium desktops to prevent overlap --- */
+@media (min-width: 992px) and (max-width: 1399px) {
+  .tpa-navbar .navbar-brand span { display: none; }
+  .tpa-navbar .nav-link { padding: 1.4rem 0.55rem !important; font-size: 0.83rem; }
+  .btn-nav-cta { font-size: 0.79rem !important; padding: 0.45rem 0.9rem !important; }
+}
+
 /* --- Navbar --- */
 @media (max-width: 991px) {
   .tpa-navbar { padding: 10px 0; }

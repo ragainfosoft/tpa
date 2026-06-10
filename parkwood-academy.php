@@ -111,6 +111,24 @@ require_once 'includes/header.php';
   padding: 20px 24px; font-style: italic; color: var(--navy); position: relative;
 }
 .testimonial-pw cite { font-style: normal; font-size: .82rem; color: #64748b; display: block; margin-top: 8px; }
+.pw-promo-badge {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid var(--gold); border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 14px;
+  animation: pw-pulse-border 2.2s ease-in-out infinite;
+}
+.pw-promo-icon { font-size: 1.3rem; flex-shrink: 0; animation: pw-bounce 1.8s ease-in-out infinite; }
+.pw-promo-text { font-size: .88rem; color: #92400e; line-height: 1.4; }
+.pw-promo-text strong { color: #78350f; }
+@keyframes pw-pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,.4); border-color: var(--gold); }
+  50%       { box-shadow: 0 0 0 6px rgba(245,166,35,.0); border-color: #f0921a; }
+}
+@keyframes pw-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
 @media (max-width: 768px) {
   .pw-hero { padding: 50px 0 56px; }
   .pw-offer-banner { padding: 22px; }
@@ -326,6 +344,10 @@ require_once 'includes/header.php';
           <p style="color:var(--text-muted);">For Parkwood Academy families only. Completely free, no obligation.</p>
         </div>
         <div class="pw-form-wrap" data-aos="fade-up">
+          <div class="pw-promo-badge">
+            <span class="pw-promo-icon">🎉</span>
+            <span class="pw-promo-text">Special <strong>discounted rates</strong> exclusively for Parkwood Academy students!</span>
+          </div>
           <div class="pw-school-badge-form">
             <i class="fas fa-school"></i>
             <span>This form is for Parkwood Academy families. Your enquiry will be prioritised.</span>
@@ -383,6 +405,7 @@ require_once 'includes/header.php';
                 <label class="form-label-tpa" for="pw-location">Preferred Location</label>
                 <select id="pw-location" name="preferred_location" class="form-select-tpa">
                   <option value="">No preference</option>
+                  <option>In School (Parkwood Academy)</option>
                   <option>Chadwell Heath (RM6 6PP)</option>
                   <option>Chelmsford (CM1 2AR)</option>
                   <option>Online</option>
