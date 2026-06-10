@@ -3,6 +3,9 @@
 # Sensitive config — keep local only, set manually on server
 admin/includes/config.php
 
+# Server config — managed on live server directly, not via git
+.htaccess
+
 # Archives / local zips
 *.zip
 *.tar.gz

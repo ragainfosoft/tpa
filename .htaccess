@@ -1,8 +1,0 @@
-# Serve index.php before index.html
-DirectoryIndex index.php index.html
-
-# Redirect .html pages to .php equivalents (301 permanent)
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}\.php -f
-RewriteRule ^(.+)\.html$ /$1.php [R=301,L]
