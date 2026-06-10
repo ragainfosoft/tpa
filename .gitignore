@@ -1,5 +1,4 @@
-# Dependencies
-vendor/
+# Dependencies — vendor IS committed (shared hosting has no SSH/composer)
 
 # Sensitive config — keep local only, set manually on server
 admin/includes/config.php

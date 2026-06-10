@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home4/kkagucom/public_html/talentpoolacademy/
+    - /bin/rsync -av --exclude='admin/includes/config.php' . $DEPLOYPATH
