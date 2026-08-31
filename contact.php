@@ -144,6 +144,8 @@ require_once 'includes/header.php';
                     <option>GCSE (Year 10–11)</option>
                     <option>A-Level (Year 12–13)</option>
                     <option>Adult Learning</option>
+                    <option>Piano Lessons</option>
+                    <option>Guitar Lessons</option>
                     <option>Not sure – please advise</option>
                   </select>
                 </div>

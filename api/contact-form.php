@@ -91,7 +91,7 @@ try {
 
     if ($existing) {
         // Add a follow-up note instead of creating duplicate
-        $db->prepare('INSERT INTO lead_followups (lead_id, user_id, type, notes, outcome) VALUES (?,0,"other",?,"Website enquiry")')
+        $db->prepare('INSERT INTO lead_followups (lead_id, user_id, type, notes, outcome) VALUES (?,NULL,"other",?,"Website enquiry")')
            ->execute([$existing['id'], "Follow-up message received:\n{$notes}"]);
         echo json_encode(['success'=>true,'duplicate'=>true,'lead_id'=>$existing['id']]);
         exit;
@@ -114,7 +114,8 @@ try {
 
     echo json_encode(['success'=>true,'lead_id'=>$leadId]);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    error_log('contact-form: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success'=>false,'error'=>'Server error — please try again']);
 }
