@@ -95,14 +95,22 @@ The webhook only receives a lead **ID**; the answers are fetched with this token
 The step most setups miss. Part C told Meta *which URL* to call; this tells it
 *which Page* to watch.
 
-In the Graph API Explorer, with the **Page token** selected, send a **POST** to:
+In the Graph API Explorer:
 
-```
-/{your-page-id}/subscribed_apps?subscribed_fields=leadgen
-```
+- Method: **POST** (not the default GET)
+- Token: the **Page** token from Part D — not the user token
+- Path: `/YOUR_PAGE_ID/subscribed_apps?subscribed_fields=leadgen`
+
+Substitute the real numeric Page ID and drop the braces — `/1029384756/…`, not
+`/{1029384756}/…`.
 
 A `{"success": true}` response means it is wired up. To confirm later, GET
-`/{your-page-id}/subscribed_apps` and check your app is listed.
+`/YOUR_PAGE_ID/subscribed_apps` and check your app is listed.
+
+If you get *"Object with ID … does not exist, cannot be loaded due to missing
+permissions, or does not support this operation"*, work through those three
+bullets in order — a user token, a GET, or an unsubstituted placeholder all
+produce that same message.
 
 ### Part F — Switch on and test
 
