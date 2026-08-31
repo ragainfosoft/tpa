@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_update_status'])
     <div class="col-sm-2">
       <select name="source" class="form-select form-select-sm">
         <option value="">All sources</option>
-        <?php foreach (['Google Search','Word of Mouth','Social Media','Flyer','Website','Other'] as $src): ?>
+        <?php foreach (getLeadSources() as $src): ?>
           <option <?= $fSource===$src?'selected':'' ?>><?= $src ?></option>
         <?php endforeach; ?>
       </select>

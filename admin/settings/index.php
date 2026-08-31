@@ -15,9 +15,12 @@ $tab = $_GET['tab'] ?? 'general';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
     $keys = $_POST['settings'] ?? [];
-    $stmt = $db->prepare('UPDATE settings SET value = ? WHERE `key` = ?');
+    // INSERT..ON DUPLICATE so a newly-introduced setting key saves on the
+    // first attempt instead of silently doing nothing.
+    $stmt = $db->prepare('INSERT INTO settings (`key`, value) VALUES (?, ?)
+                          ON DUPLICATE KEY UPDATE value = VALUES(value)');
     foreach ($keys as $key => $value) {
-        $stmt->execute([trim($value), $key]);
+        $stmt->execute([$key, trim($value)]);
     }
     // Clear getSetting cache by doing nothing (page reload)
     logActivity('settings_saved', "Settings [{$tab}] updated");
@@ -39,7 +42,7 @@ function sval(array $cfg, string $key): string { return htmlspecialchars($cfg[$k
 
 <!-- Tab nav -->
 <ul class="nav nav-tabs mb-4">
-  <?php foreach (['general'=>'General','smtp'=>'Email (SMTP)','whatsapp'=>'WhatsApp','payment'=>'Payments','reminders'=>'🔔 Reminders','users'=>'Users'] as $t=>$label): ?>
+  <?php foreach (['general'=>'General','smtp'=>'Email (SMTP)','whatsapp'=>'WhatsApp','facebook'=>'Facebook Leads','payment'=>'Payments','reminders'=>'🔔 Reminders','users'=>'Users'] as $t=>$label): ?>
     <li class="nav-item"><a class="nav-link <?= $tab===$t?'active':'' ?>" href="?tab=<?= $t ?>"><?= $label ?></a></li>
   <?php endforeach; ?>
 </ul>
@@ -106,6 +109,154 @@ function sval(array $cfg, string $key): string { return htmlspecialchars($cfg[$k
       </div>
       <?php endforeach; ?>
     </div>
+
+  <?php elseif ($tab === 'facebook'): ?>
+    <?php
+      // SITE_URL points at the admin folder on live; the webhook lives at the site root.
+      $siteRoot   = preg_replace('#/admin/?$#', '', rtrim(SITE_URL, '/'));
+      $webhookUrl = $siteRoot . '/api/facebook-leads.php';
+      $staff      = $db->query('SELECT id, name FROM users WHERE role IN ("admin","staff","branch_manager") AND is_active = 1 ORDER BY name')->fetchAll();
+
+      // Optional live check: does the saved token actually reach the Page?
+      $fbTest = null;
+      if (isset($_GET['test'])) {
+          require_once __DIR__ . '/../includes/FacebookLeadService.php';
+          $fbTest = (new FacebookLeadService())->fetchPageForms();
+      }
+    ?>
+    <h6 class="fw-700 mb-4 text-uppercase" style="font-size:.7rem;letter-spacing:.1em;color:#888;">Facebook &amp; Instagram Lead Ads</h6>
+    <div class="alert alert-info small">
+      <strong>Setup:</strong>
+      1) Open your app in <a href="https://developers.facebook.com" target="_blank">Meta for Developers</a> &rarr;
+      2) Add the <em>Webhooks</em> product, subscribe the <code>page</code> object to the <code>leadgen</code> field &rarr;
+      3) Paste the callback URL and verify token below into Meta &rarr;
+      4) Under <em>Messenger/Pages</em>, generate a long-lived <strong>Page access token</strong> with <code>leads_retrieval</code> and <code>pages_show_list</code> &rarr;
+      5) Switch the integration on and submit a test lead from Meta's Lead Ads Testing Tool.
+    </div>
+
+    <div class="alert alert-secondary small">
+      <strong>Callback URL:</strong> <code><?= h($webhookUrl) ?></code><br>
+      <strong>Subscribe to field:</strong> <code>leadgen</code> on the <code>page</code> object
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Integration enabled</label>
+        <select name="settings[fb_leads_enabled]" class="form-select">
+          <option value="1" <?= ($cfg['fb_leads_enabled'] ?? '0')==='1'?'selected':'' ?>>✅ Enabled</option>
+          <option value="0" <?= ($cfg['fb_leads_enabled'] ?? '0')==='0'?'selected':'' ?>>❌ Disabled</option>
+        </select>
+      </div>
+      <?php foreach ([
+        'fb_verify_token' => ['Webhook Verify Token', 'Any string you invent — paste the same one into Meta'],
+        'fb_app_secret'   => ['App Secret', 'Meta app dashboard → Settings → Basic'],
+        'fb_page_id'      => ['Facebook Page ID', 'Your Page → About → Page ID'],
+        'fb_page_token'   => ['Page Access Token (long-lived)', 'Needs the leads_retrieval permission'],
+      ] as $k => [$l, $hint]): ?>
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small"><?= $l ?></label>
+        <input type="<?= in_array($k, ['fb_app_secret','fb_page_token'], true) ? 'password' : 'text' ?>"
+               name="settings[<?= $k ?>]" class="form-control" value="<?= sval($cfg,$k) ?>" autocomplete="off">
+        <div class="form-text small"><?= $hint ?></div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+
+    <hr>
+    <h6 class="fw-700 mb-3 text-uppercase" style="font-size:.7rem;letter-spacing:.1em;color:#888;">How incoming leads are filed</h6>
+    <div class="row g-3">
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Source label</label>
+        <input type="text" name="settings[fb_lead_source_label]" class="form-control" value="<?= sval($cfg,'fb_lead_source_label') ?: 'Facebook Ad' ?>">
+        <div class="form-text small">Shown in the Source column. Instagram leads are labelled “Instagram Ad” automatically.</div>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Default centre</label>
+        <input type="text" name="settings[fb_lead_default_centre]" class="form-control" value="<?= sval($cfg,'fb_lead_default_centre') ?: 'No preference' ?>">
+        <div class="form-text small">Used when the lead form does not ask which centre.</div>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Auto-assign new leads to</label>
+        <select name="settings[fb_lead_assign_to]" class="form-select">
+          <option value="">— Leave unassigned —</option>
+          <?php foreach ($staff as $u): ?>
+            <option value="<?= (int)$u['id'] ?>" <?= ($cfg['fb_lead_assign_to'] ?? '')===(string)$u['id']?'selected':'' ?>><?= h($u['name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Send the WhatsApp welcome automatically</label>
+        <select name="settings[fb_lead_send_whatsapp]" class="form-select">
+          <option value="0" <?= ($cfg['fb_lead_send_whatsapp'] ?? '0')==='0'?'selected':'' ?>>❌ No</option>
+          <option value="1" <?= ($cfg['fb_lead_send_whatsapp'] ?? '0')==='1'?'selected':'' ?>>✅ Yes — use the “New Lead Welcome” template</option>
+        </select>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label fw-600 small">Notify this email on every new lead</label>
+        <input type="text" name="settings[fb_lead_notify_email]" class="form-control" value="<?= sval($cfg,'fb_lead_notify_email') ?>" placeholder="leave blank for no notification">
+      </div>
+    </div>
+
+    <hr>
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="?tab=facebook&test=1" class="btn btn-sm btn-outline-dark"><i class="bi bi-plug me-1"></i>Test connection</a>
+      <span class="text-muted small">Calls the Graph API with the saved token and lists your lead forms. Save your changes first.</span>
+    </div>
+    <?php if ($fbTest !== null): ?>
+      <?php if (!$fbTest['ok']): ?>
+        <div class="alert alert-danger small mb-4"><strong>Connection failed:</strong> <?= h($fbTest['error']) ?></div>
+      <?php else: ?>
+        <div class="alert alert-success small mb-4">
+          <strong>Connected.</strong> Lead forms found on this Page:
+          <?php $forms = $fbTest['data']['data'] ?? []; ?>
+          <?php if (!$forms): ?>
+            <em>none yet — create a lead form on the Page first.</em>
+          <?php else: ?>
+            <ul class="mb-0 mt-2">
+              <?php foreach ($forms as $f): ?>
+                <li><?= h($f['name'] ?? '—') ?> <code><?= h($f['id'] ?? '') ?></code> <span class="text-muted"><?= h($f['status'] ?? '') ?></span></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+    <?php endif; ?>
+
+    <h6 class="fw-700 mb-3 text-uppercase" style="font-size:.7rem;letter-spacing:.1em;color:#888;">Recent webhook activity</h6>
+    <?php
+      $fbLog      = [];
+      $fbLogReady = true;
+      try {
+          $fbLog = $db->query('SELECT * FROM fb_lead_log ORDER BY created_at DESC LIMIT 15')->fetchAll();
+      } catch (Throwable $ex) {
+          $fbLogReady = false;
+          echo '<div class="alert alert-warning small">Run <code>migrations/003_facebook_lead_ads.sql</code> to create the <code>fb_lead_log</code> table.</div>';
+      }
+    ?>
+    <?php if ($fbLog): ?>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle small">
+          <thead><tr><th>When</th><th>Leadgen ID</th><th>Campaign</th><th>Status</th><th>Lead</th></tr></thead>
+          <tbody>
+          <?php foreach ($fbLog as $r): ?>
+            <tr>
+              <td class="text-nowrap"><?= formatDate($r['created_at'], 'd M H:i') ?></td>
+              <td><code><?= h($r['leadgen_id']) ?></code></td>
+              <td><?= h($r['campaign_name'] ?? '') ?></td>
+              <td>
+                <?php $cls = ['created'=>'success','duplicate'=>'info','error'=>'danger','skipped'=>'warning'][$r['status']] ?? 'secondary'; ?>
+                <span class="badge bg-<?= $cls ?>"><?= h($r['status']) ?></span>
+                <?php if (!empty($r['error_message'])): ?><div class="text-danger small"><?= h($r['error_message']) ?></div><?php endif; ?>
+              </td>
+              <td><?php if ($r['lead_id']): ?><a href="../leads/view.php?id=<?= (int)$r['lead_id'] ?>">#<?= (int)$r['lead_id'] ?></a><?php else: ?>—<?php endif; ?></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php elseif ($fbLogReady): ?>
+      <p class="text-muted small">No leads received yet.</p>
+    <?php endif; ?>
 
   <?php elseif ($tab === 'payment'): ?>
     <h6 class="fw-700 mb-4 text-uppercase" style="font-size:.7rem;letter-spacing:.1em;color:#888;">Payment Gateways</h6>
