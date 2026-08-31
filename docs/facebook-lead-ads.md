@@ -33,8 +33,11 @@ because Meta checks the URL the moment you click Verify.
 1. Go to [developers.facebook.com](https://developers.facebook.com) → **My Apps**
    → **Create App**.
 2. Business portfolio: pick the one that owns the Facebook Page.
-3. Use case: choose **Other** → app type **Business** → name it (e.g. "TPA Leads")
-   → Create.
+3. Use case: choose **Other**, then app type **Business** → name it (e.g. "TPA
+   Leads") → Create. *Other* matters here: the narrower use cases pre-select a
+   product bundle that can leave **Webhooks** out of the sidebar. If the list has
+   no *Other* option, pick **Manage everything on your Page** and add Webhooks
+   yourself from *Add products*.
 4. In the left menu: **App settings → Basic**. Copy the **App Secret** (click
    *Show*) into Settings → Facebook Leads → **App Secret**, and Save.
 
