@@ -60,6 +60,15 @@ class FacebookLeadService {
         return ['ok' => true, 'data' => $data];
     }
 
+    /**
+     * Meta's "Test" button in the App Dashboard sends a sample payload whose
+     * IDs are a single repeated digit (444444444444). There is no such lead to
+     * fetch, so recognise it rather than reporting a Graph failure.
+     */
+    public function isSamplePayload(string $leadgenId): bool {
+        return (bool)preg_match('/^(\d)\1+$/', $leadgenId);
+    }
+
     /** Fetch one lead by its leadgen_id (what the webhook gives us). */
     public function fetchLead(string $leadgenId): array {
         return $this->get($leadgenId, [

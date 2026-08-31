@@ -75,6 +75,15 @@ foreach ($payload['entry'] ?? [] as $entry) {
         try {
             if ($fb->alreadyProcessed($leadgenId)) continue;   // retry of one we filed
 
+            if ($fb->isSamplePayload($leadgenId)) {
+                $fb->log($leadgenId, $value, [
+                    'status' => 'skipped',
+                    'error'  => 'Meta test payload — endpoint reachable and signature verified. '
+                              . 'Use the Lead Ads Testing Tool for a real end-to-end test.',
+                ], $raw);
+                continue;
+            }
+
             $fetched = $fb->fetchLead($leadgenId);
             if (!$fetched['ok']) {
                 $fb->log($leadgenId, $value, ['status' => 'error', 'error' => $fetched['error']], $raw);
