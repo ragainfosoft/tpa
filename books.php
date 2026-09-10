@@ -1,31 +1,210 @@
 <?php
-$page_title       = 'Books & Resources | Talent Pool Academy';
-$meta_description = 'Browse Talent Pool Academy\'s educational books and resources — including Vocabulary Builders, Spelling Workbooks, and Maths Practice books for UK students.';
+$page_title       = 'Books & Workbooks | Talent Pool Academy';
+$meta_description = 'Browse every Talent Pool Academy workbook — Comprehension, Creative Writing, Grammar, Mathematical Reasoning, Spelling, Synonyms & Antonyms, Vocabulary Builder and Sure Pass. Written by our teachers and used in every centre.';
+
+require_once 'includes/config.php';
+
+// ─────────────────────────────────────────────────────────────────────
+// BOOK CATALOGUE
+// Covers live in images/books/<slug>-book-<n>.jpg
+// `books` lists the book numbers that exist in each series — Creative
+// Writing deliberately has no Book 3.
+// ─────────────────────────────────────────────────────────────────────
+$series = [
+  'comprehension' => [
+    'name'   => 'Comprehension',
+    'accent' => '#16213E',
+    'icon'   => 'fa-book-open-reader',
+    'books'  => [1, 2, 3, 4, 5, 6],
+    'blurb'  => 'Graded reading passages with question sets that build inference, retrieval and vocabulary skills for SATs and 11 Plus.',
+  ],
+  'creative-writing' => [
+    'name'   => 'Creative Writing',
+    'accent' => '#4B2E9E',
+    'icon'   => 'fa-feather-pointed',
+    'books'  => [1, 2, 4, 5, 6],
+    'blurb'  => 'Structured story planning, descriptive technique and narrative practice that lifts writing from competent to compelling.',
+  ],
+  'grammar' => [
+    'name'   => 'Grammar',
+    'accent' => '#6B2FA0',
+    'icon'   => 'fa-spell-check',
+    'books'  => [1, 2, 3, 4, 5, 6],
+    'blurb'  => 'Word classes, punctuation, tense and sentence construction — the full primary grammar curriculum, one step at a time.',
+  ],
+  'maths-reasoning' => [
+    'name'   => 'Mathematical Reasoning',
+    'accent' => '#5B32C4',
+    'icon'   => 'fa-calculator',
+    'books'  => [1, 2, 3, 4, 5],
+    'blurb'  => 'Multi-step word problems and reasoning questions in the style children meet in SATs and grammar school entrance papers.',
+  ],
+  'spelling' => [
+    'name'   => 'Spelling',
+    'accent' => '#E01F26',
+    'icon'   => 'fa-pen-to-square',
+    'books'  => [1, 2, 3, 4, 5, 6],
+    'blurb'  => 'The statutory word lists, spelling rules and common exception words, with dictation and weekly test frameworks.',
+  ],
+  'synonyms-antonyms' => [
+    'name'   => 'Synonyms & Antonyms',
+    'accent' => '#C4C935',
+    'icon'   => 'fa-arrow-right-arrow-left',
+    'books'  => [1, 2, 3],
+    'blurb'  => 'Word-pair practice that widens vocabulary fast — the single highest-value area for 11 Plus verbal reasoning marks.',
+  ],
+  'vocabulary-builder' => [
+    'name'   => 'Vocabulary Builder',
+    'accent' => '#B8BE2E',
+    'icon'   => 'fa-book-bookmark',
+    'level'  => '11 Plus · Ages 9–11',
+    'books'  => [4],
+    'blurb'  => 'The 11 Plus word bank — high-frequency exam vocabulary with definitions, context sentences and recall practice.',
+  ],
+  'sure-pass' => [
+    'name'   => 'Sure Pass',
+    'accent' => '#8A9022',
+    'icon'   => 'fa-award',
+    'level'  => '11 Plus · Ages 9–11',
+    'books'  => [['file' => 'vocabulary', 'label' => 'Vocabulary']],
+    'blurb'  => 'Our condensed final-stretch revision title — the vocabulary that matters most, in the weeks before the exam.',
+  ],
+];
+
+// Book number → suggested school year. Edit here to change every card.
+// A series can override this wholesale with its own 'level' key.
+function tpa_book_year(int $n): string  { return 'Year ' . $n; }
+function tpa_book_ages(int $n): string  { return 'Ages ' . ($n + 4) . '–' . ($n + 5); }
+
+/**
+ * Normalise one entry of a series' `books` list.
+ * An int is a numbered book; an array is a titled one (Sure Pass has no number).
+ * Returns: label, cover filename stem, meta line and full title.
+ */
+function tpa_book(string $slug, array $series, $book): array {
+  if (is_array($book)) {
+    $label = $book['label'];
+    $file  = $slug . '-' . $book['file'];
+    $meta  = $series['level'] ?? '';
+  } else {
+    $label = 'Book ' . $book;
+    $file  = $slug . '-book-' . $book;
+    $meta  = $series['level'] ?? (tpa_book_year($book) . ' · ' . tpa_book_ages($book));
+  }
+  return [
+    'label' => $label,
+    'title' => $series['name'] . ' — ' . $label,
+    'img'   => SITE_URL . '/images/books/' . $file . '.jpg',
+    'meta'  => $meta,
+  ];
+}
+
+$totalBooks = array_sum(array_map(fn($s) => count($s['books']), $series));
+
 $extra_css = '
 <style>
-  .book-card { background:var(--white);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid rgba(10,22,40,0.07);transition:var(--transition);height:100%; }
-  .book-card:hover { transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(245,166,35,0.35); }
-  .book-cover-wrap { background:var(--off-white);padding:2rem;display:flex;align-items:center;justify-content:center;min-height:280px;position:relative; }
-  .book-cover-wrap img { width:160px;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.25); }
-  .book-badge { position:absolute;top:1rem;right:1rem;background:var(--gold);color:var(--navy);font-size:.72rem;font-weight:800;padding:.3rem .8rem;border-radius:20px;letter-spacing:.05em; }
-  .book-body { padding:1.5rem; }
-  .book-title { font-weight:700;color:var(--navy);font-size:1.05rem;margin-bottom:.4rem; }
-  .book-series { color:var(--gold);font-size:.82rem;font-weight:700;margin-bottom:.8rem; }
-  .book-desc { color:var(--text-muted);font-size:.9rem;margin-bottom:1rem; }
-  .book-features { list-style:none;padding:0;margin-bottom:1.2rem; }
-  .book-features li { font-size:.85rem;color:var(--text-muted);margin-bottom:.35rem; }
-  .book-features li::before { content:"✓";color:var(--gold);font-weight:700;margin-right:.5rem; }
-  .book-footer { display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--gray-light); }
-  .book-level { font-size:.8rem;font-weight:600;color:var(--text-muted); }
+  /* ── Filter bar ─────────────────────────────────────────── */
+  .book-filter-wrap { position:sticky; top:var(--nav-h,76px); z-index:20; background:rgba(255,255,255,.94);
+    backdrop-filter:blur(12px); border-bottom:1px solid var(--gray-light); padding:.9rem 0; }
+  .book-filter { display:flex; gap:.55rem; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+    padding-bottom:.15rem; scroll-snap-type:x proximity; }
+  .book-filter::-webkit-scrollbar { display:none; }
+  .filter-chip { flex:0 0 auto; scroll-snap-align:start; display:inline-flex; align-items:center; gap:.5rem;
+    border:1.5px solid var(--gray-light); background:var(--white); color:var(--text-muted);
+    font-size:.86rem; font-weight:600; padding:.55rem 1.05rem; border-radius:40px; cursor:pointer;
+    transition:background .2s,color .2s,border-color .2s,transform .2s; white-space:nowrap; }
+  .filter-chip:hover { border-color:var(--gold); color:var(--navy); transform:translateY(-1px); }
+  .filter-chip.active { background:var(--navy); border-color:var(--navy); color:var(--white); }
+  .filter-chip.active .chip-count { background:var(--gold); color:var(--navy); }
+  .chip-count { background:var(--gray-light); color:var(--navy); font-size:.72rem; font-weight:800;
+    padding:.1rem .48rem; border-radius:20px; line-height:1.5; }
+
+  /* ── Series heading ─────────────────────────────────────── */
+  .series-head { display:flex; align-items:flex-start; gap:1rem; margin:3.5rem 0 1.5rem;
+    padding-top:2rem; border-top:1px solid var(--gray-light); }
+  /* first group only — :first-of-type would match inside every .series-group */
+  .series-group:first-child .series-head { margin-top:0; padding-top:0; border-top:none; }
+  .series-mark { width:48px; height:48px; flex:0 0 48px; border-radius:14px; display:flex; align-items:center;
+    justify-content:center; color:#fff; font-size:1.15rem; box-shadow:0 6px 18px rgba(10,22,40,.18); }
+  .series-name { font-weight:800; color:var(--navy); font-size:1.3rem; margin:0 0 .2rem; line-height:1.25; }
+  .series-blurb { color:var(--text-muted); font-size:.92rem; margin:0; max-width:62ch; line-height:1.6; }
+
+  /* ── Book card ──────────────────────────────────────────── */
+  .book-card { position:relative; background:var(--white); border-radius:16px; overflow:hidden; height:100%;
+    border:1px solid rgba(10,22,40,.08); box-shadow:0 2px 10px rgba(10,22,40,.05);
+    display:flex; flex-direction:column;
+    transition:transform .28s cubic-bezier(.4,0,.2,1), box-shadow .28s, border-color .28s; }
+  .book-card:hover { transform:translateY(-6px); box-shadow:0 18px 44px rgba(10,22,40,.16); border-color:rgba(245,166,35,.4); }
+  .book-cover { position:relative; aspect-ratio:3/4; background:var(--off-white); overflow:hidden;
+    border-bottom:1px solid rgba(10,22,40,.06); }
+  .book-cover img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s cubic-bezier(.4,0,.2,1); }
+  .book-card:hover .book-cover img { transform:scale(1.04); }
+  .book-num { position:absolute; top:.6rem; right:.6rem; background:rgba(255,255,255,.94); color:var(--navy);
+    font-size:.7rem; font-weight:800; letter-spacing:.04em; padding:.28rem .62rem; border-radius:20px;
+    box-shadow:0 2px 8px rgba(10,22,40,.14); }
+  .book-body { padding:.9rem .95rem 1rem; display:flex; flex-direction:column; flex:1; }
+  .book-series-tag { font-size:.68rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; margin-bottom:.3rem; }
+  .book-title { font-weight:700; color:var(--navy); font-size:.98rem; line-height:1.35; margin-bottom:.45rem; }
+  .book-meta { color:var(--text-muted); font-size:.78rem; margin-bottom:.85rem; display:flex; align-items:center; gap:.4rem; }
+  .btn-enquire { margin-top:auto; width:100%; border:none; border-radius:10px; background:var(--navy); color:var(--white);
+    font-size:.82rem; font-weight:700; padding:.6rem .75rem; cursor:pointer;
+    transition:background .25s, color .25s, transform .15s; }
+  .btn-enquire:hover { background:var(--gold); color:var(--navy); }
+  .btn-enquire:active { transform:scale(.98); }
+
+  /* ── Empty state ────────────────────────────────────────── */
+  .books-empty { display:none; text-align:center; padding:4rem 1rem; color:var(--text-muted); }
+
+  /* ── Modal ──────────────────────────────────────────────── */
+  .modal-content.book-modal { border:none; border-radius:20px; overflow:hidden; }
+  .book-modal-head { background:var(--navy); color:var(--white); padding:1.35rem 1.5rem; display:flex; gap:1rem; align-items:center; }
+  .book-modal-head img { width:58px; border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.4); flex:0 0 58px; }
+  .book-modal-head h5 { margin:0 0 .15rem; font-size:1.05rem; font-weight:700; }
+  .book-modal-head p { margin:0; font-size:.82rem; color:rgba(255,255,255,.72); }
+  .book-modal .btn-close { filter:invert(1) grayscale(100%) brightness(200%); opacity:.7; }
+  .form-label-tpa { font-weight:600; font-size:.83rem; color:var(--navy); margin-bottom:.3rem; display:block; }
+  .form-control-tpa, .form-select-tpa { width:100%; border:1.5px solid var(--gray-light); border-radius:10px;
+    padding:.6rem .85rem; font-size:.9rem; color:var(--navy); background:var(--white); transition:border-color .2s, box-shadow .2s; }
+  .form-control-tpa:focus, .form-select-tpa:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(245,166,35,.15); }
+  .form-control-tpa.is-invalid, .form-select-tpa.is-invalid { border-color:#dc3545; }
+  .field-err { display:none; color:#dc3545; font-size:.76rem; margin-top:.25rem; }
+  .form-control-tpa.is-invalid ~ .field-err, .form-select-tpa.is-invalid ~ .field-err { display:block; }
+  .modal-ok { display:none; text-align:center; padding:2.5rem 1.5rem; }
+  .modal-ok i { font-size:3rem; color:#28a745; margin-bottom:1rem; }
+
+  @media (max-width:575.98px) {
+    .series-head { gap:.75rem; margin:2.5rem 0 1.15rem; }
+    .series-mark { width:40px; height:40px; flex:0 0 40px; font-size:1rem; }
+    .series-name { font-size:1.1rem; }
+    .series-blurb { font-size:.85rem; }
+    .book-body { padding:.75rem .8rem .85rem; }
+    .book-title { font-size:.9rem; }
+    .book-modal-head { padding:1.1rem 1.15rem; }
+  }
 </style>';
-require_once 'includes/config.php';
+
 $schema_extra = '<script type="application/ld+json">' . json_encode([
-  '@context'=>'https://schema.org','@type'=>'CollectionPage',
-  'name'=>'Books & Resources — Talent Pool Academy',
-  'url'=>'https://www.talentpoolacademy.com/books.php',
-  'description'=>'Educational books and revision resources by Talent Pool Academy — Vocabulary Builders, Spelling Workbooks and Maths Practice books for KS1–GCSE students.',
-  'provider'=>['@type'=>'EducationalOrganization','name'=>'Talent Pool Academy','url'=>'https://www.talentpoolacademy.com'],
-], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . '</script>';
+  '@context' => 'https://schema.org', '@type' => 'CollectionPage',
+  'name'        => 'Books & Workbooks — Talent Pool Academy',
+  'url'         => 'https://www.talentpoolacademy.com/books.php',
+  'description' => $meta_description,
+  'provider'    => ['@type' => 'EducationalOrganization', 'name' => 'Talent Pool Academy', 'url' => 'https://www.talentpoolacademy.com'],
+  'mainEntity'  => [
+    '@type'           => 'ItemList',
+    'numberOfItems'   => $totalBooks,
+    'itemListElement' => (function () use ($series) {
+      $out = []; $i = 1;
+      foreach ($series as $slug => $s) {
+        foreach ($s['books'] as $b) {
+          $bk = tpa_book($slug, $s, $b);
+          $out[] = ['@type' => 'ListItem', 'position' => $i++, 'name' => $bk['title']];
+        }
+      }
+      return $out;
+    })(),
+  ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+
 require_once 'includes/header.php';
 ?>
 
@@ -39,362 +218,328 @@ require_once 'includes/header.php';
             <li class="breadcrumb-item active">Books</li>
           </ol>
         </nav>
-        <h1>Books &amp; <span style="color:var(--gold);">Learning Resources</span></h1>
-        <p>All our resources are aligned with the National Curriculum and match children's abilities, and the practice materials are designed to complement every stage of your child's learning journey.</p>
+        <h1>Our <span style="color:var(--gold);">Workbooks</span></h1>
+        <p><?= $totalBooks ?> workbooks across <?= count($series) ?> subjects, written by our own teaching team and used in every Talent Pool Academy session. Aligned to the National Curriculum and graded book by book.</p>
       </div>
     </div>
   </section>
 
-  <!-- INTRO -->
-  <section class="section-pad-sm section-bg">
+  <!-- FILTER BAR -->
+  <div class="book-filter-wrap">
     <div class="container">
-      <div class="row align-items-center gy-4">
-        <div class="col-lg-8" data-aos="fade-right">
-          <div class="section-tag"><i class="fas fa-book"></i> Our Publications</div>
-          <h2 class="section-title" style="font-size:1.9rem;">Written by Our <span>Expert Teachers</span></h2>
-          <p style="color:var(--text-muted);">All Talent Pool Academy resources are written by our experienced teaching team. Each book is carefully structured to align with the UK National Curriculum and is used directly in our tuition sessions — so they're proven to work.</p>
-        </div>
-        <div class="col-lg-4 text-center" data-aos="fade-left">
-          <div style="background:var(--white);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);">
-            <div style="font-size:2.5rem;color:var(--gold);margin-bottom:.5rem;"><i class="fas fa-truck"></i></div>
-            <div style="font-weight:700;color:var(--navy);">UK Delivery Available</div>
-            <div style="color:var(--text-muted);font-size:.88rem;">Order by post or collect in-centre at Chadwell Heath or Chelmsford.</div>
-          </div>
-        </div>
+      <div class="book-filter" role="tablist" aria-label="Filter books by subject">
+        <button class="filter-chip active" data-filter="all" role="tab" aria-selected="true">
+          All Books <span class="chip-count"><?= $totalBooks ?></span>
+        </button>
+        <?php foreach ($series as $slug => $s): ?>
+        <button class="filter-chip" data-filter="<?= $slug ?>" role="tab" aria-selected="false">
+          <?= htmlspecialchars($s['name'], ENT_QUOTES) ?> <span class="chip-count"><?= count($s['books']) ?></span>
+        </button>
+        <?php endforeach; ?>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- BOOKS GRID -->
+  <!-- BOOKS -->
   <section class="section-pad">
     <div class="container">
-      <div class="text-center mb-5" data-aos="fade-up">
-        <div class="section-tag"><i class="fas fa-book-open"></i> All Books</div>
-        <h2 class="section-title">Our <span>Publications</span></h2>
-        <div class="divider-gold"></div>
+
+      <?php foreach ($series as $slug => $s): ?>
+      <div class="series-group" data-series="<?= $slug ?>">
+        <div class="series-head" id="<?= $slug ?>">
+          <div class="series-mark" style="background:<?= $s['accent'] ?>;">
+            <i class="fa-solid <?= $s['icon'] ?>"></i>
+          </div>
+          <div>
+            <h2 class="series-name"><?= htmlspecialchars($s['name'], ENT_QUOTES) ?>
+              <span style="font-weight:600;color:var(--text-muted);font-size:.85rem;">· <?= count($s['books']) ?> books</span>
+            </h2>
+            <p class="series-blurb"><?= htmlspecialchars($s['blurb'], ENT_QUOTES) ?></p>
+          </div>
+        </div>
+
+        <div class="row g-3 g-md-4">
+          <?php foreach ($s['books'] as $b): $bk = tpa_book($slug, $s, $b); ?>
+          <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <article class="book-card">
+              <div class="book-cover">
+                <span class="book-num"><?= htmlspecialchars($bk['label'], ENT_QUOTES) ?></span>
+                <img src="<?= $bk['img'] ?>" alt="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?> — Talent Pool Academy workbook cover" loading="lazy" width="640" height="853">
+              </div>
+              <div class="book-body">
+                <div class="book-series-tag" style="color:<?= $s['accent'] ?>;"><?= htmlspecialchars($s['name'], ENT_QUOTES) ?></div>
+                <div class="book-title"><?= htmlspecialchars($bk['label'], ENT_QUOTES) ?></div>
+                <?php if ($bk['meta']): ?><div class="book-meta"><i class="fas fa-child"></i><?= $bk['meta'] ?></div><?php endif; ?>
+                <button type="button" class="btn-enquire js-enquire"
+                        data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
+                        data-img="<?= $bk['img'] ?>"
+                        data-meta="<?= htmlspecialchars($bk['meta'], ENT_QUOTES) ?>">
+                  <i class="fas fa-envelope me-1"></i> Enquire to Buy
+                </button>
+              </div>
+            </article>
+          </div>
+          <?php endforeach; ?>
+        </div>
       </div>
-      <div class="row g-4">
+      <?php endforeach; ?>
 
-        <!-- Vocabulary Builder -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up">
-          <div class="book-card">
-            <div class="book-cover-wrap">
-              <span class="book-badge">BESTSELLER</span>
-              <img src="<?= SITE_URL ?>/images/book_vocab.png" alt="Vocabulary Builder Workbook">
-            </div>
-            <div class="book-body">
-              <div class="book-series">TPA Educational Series</div>
-              <div class="book-title">Vocabulary Builder Workbook</div>
-              <div class="book-desc">A comprehensive vocabulary development resource for KS1 &amp; KS2 students, packed with exercises to expand word knowledge across all subjects.</div>
-              <ul class="book-features">
-                <li>500+ carefully selected words</li>
-                <li>Contextual sentences &amp; definitions</li>
-                <li>Fill-in exercises &amp; word games</li>
-                <li>Progress tracking pages</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 2–6 · Ages 6–11</span>
-              <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa" style="font-size:.82rem;padding:.5rem 1.1rem;">Enquire</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Spelling Mastery -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-          <div class="book-card">
-            <div class="book-cover-wrap">
-              <img src="<?= SITE_URL ?>/images/book_spelling.png" alt="Spelling Mastery Workbook">
-            </div>
-            <div class="book-body">
-              <div class="book-series">TPA Educational Series</div>
-              <div class="book-title">Spelling Mastery Workbook</div>
-              <div class="book-desc">Master the Year 1–6 statutory spelling lists, spelling rules, and common exception words with structured, engaging practice activities.</div>
-              <ul class="book-features">
-                <li>All KS1 &amp; KS2 spelling lists</li>
-                <li>Spelling rules &amp; patterns</li>
-                <li>Dictation exercises</li>
-                <li>Weekly test frameworks</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 1–6 · Ages 5–11</span>
-              <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa" style="font-size:.82rem;padding:.5rem 1.1rem;">Enquire</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- 11 Plus VR -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-          <div class="book-card">
-            <div class="book-cover-wrap" style="background:linear-gradient(135deg,var(--navy),var(--navy-light));min-height:280px;flex-direction:column;gap:1rem;">
-              <i class="fas fa-brain" style="font-size:4rem;color:var(--gold);opacity:.8;"></i>
-              <span style="color:var(--white);font-weight:700;text-align:center;font-size:.95rem;">11 Plus VR Practice</span>
-            </div>
-            <div class="book-body">
-              <div class="book-series">TPA 11 Plus Series</div>
-              <div class="book-title">11 Plus Verbal Reasoning Practice</div>
-              <div class="book-desc">Hundreds of VR practice questions covering every question type found in the 11+ exam, with worked examples and detailed answers.</div>
-              <ul class="book-features">
-                <li>25+ question type categories</li>
-                <li>Timed practice tests</li>
-                <li>Answers with full explanations</li>
-                <li>Progress assessment charts</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 4–6 · Ages 9–11</span>
-              <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa" style="font-size:.82rem;padding:.5rem 1.1rem;">Enquire</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- KS2 Maths -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up">
-          <div class="book-card">
-            <div class="book-cover-wrap" style="background:linear-gradient(135deg,#e8f4f8,#c9e8f5);min-height:280px;flex-direction:column;gap:1rem;">
-              <i class="fas fa-calculator" style="font-size:4rem;color:#17a2b8;opacity:.8;"></i>
-              <span style="color:var(--navy);font-weight:700;text-align:center;font-size:.95rem;">KS2 Maths Practice</span>
-            </div>
-            <div class="book-body">
-              <div class="book-series">TPA Maths Series</div>
-              <div class="book-title">KS2 Maths Reasoning &amp; Problem Solving</div>
-              <div class="book-desc">Develops mathematical reasoning skills essential for SATs — covering all Year 3–6 topics with graduated difficulty levels.</div>
-              <ul class="book-features">
-                <li>3 levels: Foundation, Core &amp; Extension</li>
-                <li>SATs-style questions throughout</li>
-                <li>Multi-step problem solving</li>
-                <li>Worked example solutions</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 3–6 · Ages 7–11</span>
-              <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa" style="font-size:.82rem;padding:.5rem 1.1rem;">Enquire</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- NVR -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-          <div class="book-card">
-            <div class="book-cover-wrap" style="background:linear-gradient(135deg,#f3e8ff,#e8d5fb);min-height:280px;flex-direction:column;gap:1rem;">
-              <i class="fas fa-shapes" style="font-size:4rem;color:#6f42c1;opacity:.8;"></i>
-              <span style="color:var(--navy);font-weight:700;text-align:center;font-size:.95rem;">11 Plus NVR Practice</span>
-            </div>
-            <div class="book-body">
-              <div class="book-series">TPA 11 Plus Series</div>
-              <div class="book-title">11 Plus Non-Verbal Reasoning Practice</div>
-              <div class="book-desc">Visual spatial puzzles, pattern recognition, and shapes-based reasoning to build NVR skills from scratch — no prior knowledge needed.</div>
-              <ul class="book-features">
-                <li>Step-by-step skill building</li>
-                <li>20+ NVR question types</li>
-                <li>Full-colour visual examples</li>
-                <li>Timed mock test included</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 4–6 · Ages 9–11</span>
-              <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa" style="font-size:.82rem;padding:.5rem 1.1rem;">Enquire</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Coming Soon -->
-        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-          <div class="book-card" style="border:2px dashed rgba(10,22,40,0.2);">
-            <div class="book-cover-wrap" style="background:var(--gray-light);min-height:280px;flex-direction:column;gap:1rem;">
-              <i class="fas fa-clock" style="font-size:4rem;color:var(--gray);opacity:.6;"></i>
-              <span style="color:var(--gray);font-weight:700;text-align:center;">Coming Soon</span>
-            </div>
-            <div class="book-body">
-              <div class="book-series" style="color:var(--gray);">TPA KS3 Series</div>
-              <div class="book-title">KS3 Science Revision Guide</div>
-              <div class="book-desc">A comprehensive revision guide for Year 7–9 Science covering Biology, Chemistry, and Physics aligned to the KS3 programme of study.</div>
-              <ul class="book-features">
-                <li>All three science disciplines</li>
-                <li>Key term glossaries</li>
-                <li>Practice questions &amp; answers</li>
-                <li>GCSE transition content</li>
-              </ul>
-            </div>
-            <div class="book-footer">
-              <span class="book-level"><i class="fas fa-child me-1"></i>Year 7–9 · Ages 11–14</span>
-              <span style="background:var(--gray-light);color:var(--gray);padding:.45rem 1rem;border-radius:20px;font-size:.82rem;font-weight:600;">Notify Me</span>
-            </div>
-          </div>
-        </div>
-
+      <div class="books-empty" id="booksEmpty">
+        <i class="fas fa-book-open fa-2x mb-3 d-block" style="color:var(--gold);"></i>
+        No books in this subject yet.
       </div>
     </div>
   </section>
 
   <!-- HOW TO ORDER -->
-  <section class="section-pad section-bg">
+  <section class="section-pad-sm section-bg">
     <div class="container">
-      <div class="text-center mb-5" data-aos="fade-up">
-        <div class="section-tag"><i class="fas fa-shopping-cart"></i> How to Order</div>
-        <h2 class="section-title">Getting Your <span>Books</span></h2>
-        <p class="section-subtitle mx-auto">Simple steps to get the right resources in your child's hands.</p>
+      <div class="text-center mb-4" data-aos="fade-up">
+        <div class="section-tag"><i class="fas fa-truck"></i> Ordering</div>
+        <h2 class="section-title">How to <span>Get Your Books</span></h2>
         <div class="divider-gold"></div>
       </div>
-      <div class="row g-4">
-
-        <div class="col-sm-6 col-lg-3" data-aos="fade-up">
-          <div class="order-step-card">
-            <div class="order-step-num">1</div>
-            <div class="order-step-icon"><i class="fas fa-phone-alt"></i></div>
-            <h5>Get in Touch</h5>
-            <p>Contact us by phone, email or WhatsApp to enquire and confirm availability.</p>
-            <a href="tel:<?= PHONE ?>" class="order-step-link"><i class="fas fa-phone-alt me-1"></i><?= PHONE ?></a>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
-          <div class="order-step-card">
-            <div class="order-step-num">2</div>
-            <div class="order-step-icon"><i class="fas fa-clipboard-check"></i></div>
-            <h5>Choose &amp; Pay</h5>
-            <p>Choose <strong>hard copy</strong> or <strong>soft copy</strong> and specify the book name. Pay by bank transfer or cash on collection. Use your <strong>student name + "books"</strong> as the payment reference.</p>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
-          <div class="order-step-card">
-            <div class="order-step-num">3</div>
-            <div class="order-step-icon"><i class="fas fa-truck"></i></div>
-            <h5>Collect or Deliver</h5>
-            <p>Collect from our Chadwell Heath or Chelmsford centre, or have books posted to your UK address.</p>
-            <span class="order-step-badge"><i class="fas fa-check me-1"></i>Free local collection</span>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
-          <div class="order-step-card">
-            <div class="order-step-num">4</div>
-            <div class="order-step-icon"><i class="fas fa-rocket"></i></div>
-            <h5>Start Learning</h5>
-            <p>Your child uses the resources at home and can bring them into class for teacher guidance.</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- BANK DETAILS -->
-      <div class="row justify-content-center mt-5" data-aos="fade-up">
-        <div class="col-lg-8">
-          <div style="background:var(--navy);border-radius:var(--radius-lg);padding:1.75rem 2rem;color:var(--white);">
-            <h5 style="color:var(--gold);font-weight:700;margin-bottom:1.2rem;"><i class="fas fa-university me-2"></i>Bank Transfer Details</h5>
-            <div class="row g-3">
-              <div class="col-sm-4"><div style="font-size:.8rem;color:rgba(255,255,255,0.6);margin-bottom:.2rem;">Account Name</div><div style="font-weight:700;color:var(--white);">Talent Pool Academy</div></div>
-              <div class="col-sm-4"><div style="font-size:.8rem;color:rgba(255,255,255,0.6);margin-bottom:.2rem;">Account Number</div><div style="font-weight:700;color:var(--white);">69995444</div></div>
-              <div class="col-sm-4"><div style="font-size:.8rem;color:rgba(255,255,255,0.6);margin-bottom:.2rem;">Sort Code</div><div style="font-weight:700;color:var(--white);">08-92-99</div></div>
+      <div class="row g-4 justify-content-center">
+        <?php foreach ([
+          ['fa-hand-pointer', 'Send an enquiry', 'Pick a book above and tell us which stage your child is at. It takes under a minute.'],
+          ['fa-comments',     'We confirm price &amp; stock', 'Our team replies within one working day with pricing and availability.'],
+          ['fa-box-open',     'Collect or have it posted', 'Collect in-centre at Chadwell Heath or Chelmsford, or we post it anywhere in the UK.'],
+        ] as $i => [$icon, $head, $copy]): ?>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="<?= $i * 100 ?>">
+          <div class="text-center" style="background:var(--white);border-radius:var(--radius-lg);padding:2rem 1.5rem;box-shadow:var(--shadow-sm);height:100%;">
+            <div style="width:64px;height:64px;margin:0 auto 1.15rem;border-radius:50%;background:linear-gradient(135deg,#F5A623,#FFD700);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--navy);box-shadow:0 8px 24px rgba(245,166,35,.35);">
+              <i class="fas <?= $icon ?>"></i>
             </div>
-            <div style="margin-top:1.1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.15);font-size:.88rem;color:rgba(255,255,255,0.75);">
-              <i class="fas fa-info-circle text-gold me-2"></i><strong style="color:var(--gold);">Payment Reference:</strong> Please write your <strong style="color:var(--white);">student's name + "books"</strong> as the payment reference (e.g. <em>Ahmed Ali — books</em>).
-            </div>
+            <h5 style="font-weight:700;color:var(--navy);font-size:1rem;margin-bottom:.5rem;"><?= $head ?></h5>
+            <p style="color:var(--text-muted);font-size:.9rem;margin:0;line-height:1.6;"><?= $copy ?></p>
           </div>
         </div>
-      </div>
-
-      <div class="text-center mt-5" data-aos="fade-up">
-        <p style="color:var(--text-muted);margin-bottom:1.25rem;">The quickest way to order is via WhatsApp:</p>
-        <a href="https://wa.me/<?= WHATSAPP ?>?text=Hi, I'd like to order a TPA book" class="btn-primary-tpa me-3"><i class="fab fa-whatsapp me-2"></i>Order via WhatsApp</a>
-        <a href="<?= SITE_URL ?>/contact.php" class="btn-outline-tpa"><i class="fas fa-envelope me-2"></i>Send Enquiry</a>
+        <?php endforeach; ?>
       </div>
     </div>
   </section>
-
-  <style>
-  .order-step-card {
-    background: #fff;
-    border-radius: var(--radius-lg);
-    padding: 2rem 1.5rem 1.75rem;
-    border: 1px solid rgba(10,22,40,0.07);
-    box-shadow: 0 2px 12px rgba(10,22,40,0.06);
-    text-align: center;
-    height: 100%;
-    position: relative;
-    transition: var(--transition);
-  }
-  .order-step-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 16px 48px rgba(10,22,40,0.12);
-    border-color: rgba(245,166,35,0.3);
-  }
-  .order-step-num {
-    position: absolute;
-    top: -14px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 32px;
-    height: 32px;
-    background: var(--navy);
-    color: var(--gold);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: .85rem;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(10,22,40,0.2);
-  }
-  .order-step-icon {
-    width: 68px;
-    height: 68px;
-    background: linear-gradient(135deg, #F5A623, #FFD700);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0.5rem auto 1.25rem;
-    font-size: 1.5rem;
-    color: var(--navy);
-    box-shadow: 0 8px 24px rgba(245,166,35,0.35);
-  }
-  .order-step-card h5 {
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: .5rem;
-    font-size: 1rem;
-  }
-  .order-step-card p {
-    color: var(--text-muted);
-    font-size: .9rem;
-    margin: 0;
-    line-height: 1.6;
-  }
-  .order-step-link {
-    display: inline-block;
-    margin-top: .85rem;
-    font-size: .8rem;
-    color: var(--gold);
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .order-step-badge {
-    display: inline-block;
-    margin-top: .85rem;
-    font-size: .78rem;
-    background: #FFF8E7;
-    color: var(--navy);
-    padding: .25rem .8rem;
-    border-radius: 20px;
-    font-weight: 600;
-  }
-  </style>
 
   <!-- CTA -->
   <section class="cta-section">
     <div class="container text-center position-relative">
       <div data-aos="fade-up">
-        <h2>Want to Order or Find Out <span style="color:var(--gold);">More?</span></h2>
-        <p>Get in touch with our team and we'll help you find the right books for your child's stage and programme.</p>
+        <h2>Not sure which book <span style="color:var(--gold);">fits your child?</span></h2>
+        <p>Tell us their year group and we'll recommend the right stage — the books are graded, so starting in the right place matters.</p>
         <div class="d-flex gap-3 justify-content-center flex-wrap">
-          <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa"><i class="fas fa-envelope"></i> Get in Touch</a>
+          <a href="<?= SITE_URL ?>/contact.php" class="btn-primary-tpa"><i class="fas fa-envelope"></i> Ask Our Team</a>
           <a href="tel:<?= PHONE ?>" class="btn-secondary-tpa"><i class="fas fa-phone-alt"></i> Call <?= PHONE ?></a>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- ENQUIRY MODAL -->
+  <div class="modal fade" id="bookEnquiryModal" tabindex="-1" aria-labelledby="bookEnquiryLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content book-modal">
+
+        <div class="book-modal-head">
+          <img id="bkImg" src="" alt="">
+          <div class="flex-grow-1">
+            <h5 id="bookEnquiryLabel">Book enquiry</h5>
+            <p id="bkMeta">Tell us where to send it and we'll confirm price and stock.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <form id="bookEnquiryForm" novalidate>
+            <input type="hidden" name="book_title" id="bkTitle">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label-tpa" for="bk-name">Your Name *</label>
+                <input type="text" id="bk-name" name="name" class="form-control-tpa" placeholder="Parent or guardian name" required>
+                <span class="field-err">Please enter your name</span>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label-tpa" for="bk-phone">Phone Number *</label>
+                <input type="tel" id="bk-phone" name="phone" class="form-control-tpa" placeholder="07xxx xxxxxx" required autocomplete="tel">
+                <span class="field-err">Please enter a contact number</span>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label-tpa" for="bk-email">Email Address *</label>
+                <input type="email" id="bk-email" name="email" class="form-control-tpa" placeholder="you@example.com" required>
+                <span class="field-err">Please enter a valid email address</span>
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label-tpa" for="bk-qty">Quantity</label>
+                <input type="number" id="bk-qty" name="quantity" class="form-control-tpa" value="1" min="1" max="99">
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label-tpa" for="bk-year">Child's Year</label>
+                <select id="bk-year" name="year_group" class="form-select-tpa">
+                  <option value="">—</option>
+                  <option>Reception</option>
+                  <?php for ($y = 1; $y <= 11; $y++): ?><option>Year <?= $y ?></option><?php endfor; ?>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label-tpa" for="bk-collect">Collection or Delivery</label>
+                <select id="bk-collect" name="fulfilment" class="form-select-tpa">
+                  <option>Collect — Chadwell Heath (RM6 6PP)</option>
+                  <option>Collect — Chelmsford (CM1 2AR)</option>
+                  <option>Post to me (UK delivery)</option>
+                  <option>Not sure yet</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label-tpa" for="bk-message">Anything else?</label>
+                <textarea id="bk-message" name="message" class="form-control-tpa" rows="3" placeholder="Other books you're interested in, or questions about the right stage…" style="resize:vertical;"></textarea>
+              </div>
+              <div class="col-12">
+                <div style="display:flex;align-items:flex-start;gap:.65rem;">
+                  <input type="checkbox" id="bk-consent" name="consent" checked style="flex-shrink:0;margin-top:.2rem;width:1rem;height:1rem;accent-color:var(--gold);cursor:pointer;">
+                  <label for="bk-consent" style="font-size:.83rem;color:var(--text-muted);cursor:pointer;line-height:1.55;margin:0;">
+                    I agree to Talent Pool Academy contacting me about this enquiry. See our
+                    <a href="<?= SITE_URL ?>/privacy.php" style="color:var(--gold);">Privacy Policy</a>.
+                  </label>
+                </div>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn-primary-tpa w-100" style="justify-content:center;">
+                  <i class="fas fa-paper-plane"></i> Send Enquiry
+                </button>
+                <div id="bkError" class="field-err mt-2" style="text-align:center;"></div>
+              </div>
+            </div>
+          </form>
+
+          <div class="modal-ok" id="bkSuccess">
+            <i class="fas fa-circle-check d-block"></i>
+            <h5 style="font-weight:700;color:var(--navy);">Enquiry sent</h5>
+            <p style="color:var(--text-muted);margin-bottom:1.25rem;">Thanks — our team will be in touch within one working day to confirm price and availability.</p>
+            <button type="button" class="btn-secondary-tpa" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Runs on DOMContentLoaded so bootstrap.bundle.js (loaded in the footer,
+  // after this block) is available when the modal is constructed.
+  document.addEventListener('DOMContentLoaded', function () {
+    // ── Subject filter ────────────────────────────────────────
+    var chips  = document.querySelectorAll('.filter-chip');
+    var groups = document.querySelectorAll('.series-group');
+    var empty  = document.getElementById('booksEmpty');
+
+    function applyFilter(key) {
+      var shown = 0;
+      groups.forEach(function (g) {
+        var match = (key === 'all' || g.dataset.series === key);
+        g.hidden = !match;
+        if (match) shown++;
+      });
+      empty.style.display = shown ? 'none' : 'block';
+      chips.forEach(function (c) {
+        var on = c.dataset.filter === key;
+        c.classList.toggle('active', on);
+        c.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    }
+
+    chips.forEach(function (c) {
+      c.addEventListener('click', function () {
+        applyFilter(c.dataset.filter);
+        window.scrollTo({ top: document.querySelector('.book-filter-wrap').offsetTop - 10, behavior: 'smooth' });
+      });
+    });
+
+    // Deep link: books.php#grammar opens that subject
+    var hash = (location.hash || '').replace('#', '');
+    if (hash && document.querySelector('.filter-chip[data-filter="' + hash + '"]')) applyFilter(hash);
+
+    // ── Modal ─────────────────────────────────────────────────
+    var modalEl = document.getElementById('bookEnquiryModal');
+    if (!modalEl) return;
+    var modal   = new bootstrap.Modal(modalEl);
+    var form    = document.getElementById('bookEnquiryForm');
+    var okPanel = document.getElementById('bkSuccess');
+    var errBox  = document.getElementById('bkError');
+
+    document.querySelectorAll('.js-enquire').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('bkTitle').value  = btn.dataset.book;
+        document.getElementById('bkImg').src      = btn.dataset.img;
+        document.getElementById('bkImg').alt      = btn.dataset.book;
+        document.getElementById('bookEnquiryLabel').textContent = btn.dataset.book;
+        document.getElementById('bkMeta').textContent = btn.dataset.meta;
+        form.style.display   = '';
+        okPanel.style.display = 'none';
+        errBox.style.display = 'none';
+        modal.show();
+      });
+    });
+
+    function invalid(el, bad) { el.classList.toggle('is-invalid', bad); return !bad; }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name  = document.getElementById('bk-name');
+      var phone = document.getElementById('bk-phone');
+      var email = document.getElementById('bk-email');
+      var ok = true;
+      ok = invalid(name,  !name.value.trim()) && ok;
+      ok = invalid(phone, phone.value.replace(/\D/g, '').length < 10) && ok;
+      ok = invalid(email, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) && ok;
+      if (!ok) return;
+
+      var btn = form.querySelector('button[type="submit"]');
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending…';
+      btn.disabled = true;
+      errBox.style.display = 'none';
+
+      var book = document.getElementById('bkTitle').value;
+      var qty  = document.getElementById('bk-qty').value || '1';
+      var ful  = document.getElementById('bk-collect').value;
+      var msg  = document.getElementById('bk-message').value.trim();
+
+      var centre = '';
+      if (ful.indexOf('Chadwell') > -1)   centre = 'Chadwell Heath';
+      if (ful.indexOf('Chelmsford') > -1) centre = 'Chelmsford';
+
+      var notes = 'BOOK ENQUIRY\n'
+                + 'Book: ' + book + '\n'
+                + 'Quantity: ' + qty + '\n'
+                + 'Fulfilment: ' + ful
+                + (msg ? '\n\nMessage:\n' + msg : '');
+
+      fetch(window.tpaApiUrl || '<?= SITE_URL ?>/api/contact-form.php', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       name.value.trim(),
+          email:      email.value.trim(),
+          phone:      phone.value.trim(),
+          year_group: document.getElementById('bk-year').value,
+          subject:    book,
+          centre:     centre,
+          notes:      notes,
+          source:     'Website - Book Enquiry'
+        })
+      })
+      .then(function (r) { return r.json().catch(function () { return { success: r.ok }; }); })
+      .then(function (d) {
+        if (!d || d.success === false) throw new Error(d && d.error ? d.error : 'Please try again');
+        form.style.display    = 'none';
+        okPanel.style.display = 'block';
+        form.reset();
+      })
+      .catch(function (err) {
+        errBox.textContent   = err.message || 'Something went wrong — please call us instead.';
+        errBox.style.display = 'block';
+      })
+      .finally(function () { btn.innerHTML = orig; btn.disabled = false; });
+    });
+  });
+  </script>
 
 <?php require_once 'includes/footer.php'; ?>
