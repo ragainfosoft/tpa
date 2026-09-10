@@ -115,9 +115,9 @@ $_ld_org = [
   <div class="announcement-bar" id="announcementBar">
     <div class="container">
       <span class="ann-slide ann-slide-active">
-        <i class="fas fa-sun me-1" aria-hidden="true"></i>
-        <strong>Summer Holiday Camp 2026 — 27 Jul to 23 Aug!</strong> Ages 5–14 · Only £200 · Limited seats.
-        <a href="<?= SITE_URL ?>/summer-camp.php" style="margin-left:.4rem;">Book Now →</a>
+        <i class="fas fa-graduation-cap me-1" aria-hidden="true"></i>
+        <strong>September Batches Now Open!</strong> Maths · English · VR · NVR — group &amp; one-to-one, in-centre or online.
+        <a href="<?= SITE_URL ?>/contact.php#assessment" style="margin-left:.4rem;">Enrol Now →</a>
       </span>
       <span class="ann-slide" aria-hidden="true">
         <i class="fas fa-handshake me-1" aria-hidden="true"></i>
@@ -200,7 +200,6 @@ $_ld_org = [
           </li>
           <li class="nav-item"><a class="nav-link <?= isActive('books.php') ?>" href="<?= SITE_URL ?>/books.php">Books</a></li>
           <li class="nav-item"><a class="nav-link <?= isActive('events.php') ?>" href="<?= SITE_URL ?>/events.php">Events</a></li>
-          <li class="nav-item"><a class="nav-link <?= isActive('summer-camp.php') ?>" href="<?= SITE_URL ?>/summer-camp.php" style="color:#e65100;font-weight:700;"><i class="fas fa-sun me-1" aria-hidden="true"></i>Summer Camp</a></li>
           <li class="nav-item"><a class="nav-link <?= isActive('contact.php') ?>" href="<?= SITE_URL ?>/contact.php">Contact</a></li>
           <li class="nav-item"><a class="btn-nav-cta ms-2" href="<?= SITE_URL ?>/contact.php#assessment">✦ Free Assessment</a></li>
         </ul>

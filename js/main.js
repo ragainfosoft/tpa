@@ -60,14 +60,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const heroImg      = document.querySelector('.hero-img-wrap');
 
     if (heroTitle) {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.from(heroBadge,    { opacity: 0, y: 30, duration: 0.6 })
-        .from(heroTitle,    { opacity: 0, y: 40, duration: 0.8 }, '-=0.3')
-        .from(heroSubtitle, { opacity: 0, y: 30, duration: 0.7 }, '-=0.5')
-        .from(heroCtas,     { opacity: 0, y: 25, duration: 0.6 }, '-=0.4')
-        .from(heroTrust,    { opacity: 0, y: 20, duration: 0.5 }, '-=0.3');
-      if (heroImg) tl.from(heroImg, { opacity: 0, x: 60, scale: 0.95, duration: 1 }, 0.3);
-      gsap.from('.hero-float-card', { opacity: 0, y: 20, duration: 0.6, stagger: 0.2, delay: 1.2, ease: 'back.out(1.7)' });
+      // Exposed so the homepage slider can replay it whenever the hero slide
+      // comes back into view — otherwise it plays once behind a hidden slide
+      // and the visitor never sees it.
+      window.tpaPlayHeroIntro = function () {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.from(heroBadge,    { opacity: 0, y: 30, duration: 0.6 })
+          .from(heroTitle,    { opacity: 0, y: 40, duration: 0.8 }, '-=0.3')
+          .from(heroSubtitle, { opacity: 0, y: 30, duration: 0.7 }, '-=0.5')
+          .from(heroCtas,     { opacity: 0, y: 25, duration: 0.6 }, '-=0.4')
+          .from(heroTrust,    { opacity: 0, y: 20, duration: 0.5 }, '-=0.3');
+        if (heroImg) tl.from(heroImg, { opacity: 0, x: 60, scale: 0.95, duration: 1 }, 0.3);
+        gsap.from('.hero-float-card', { opacity: 0, y: 20, duration: 0.6, stagger: 0.2, delay: 1.2, ease: 'back.out(1.7)' });
+        return tl;
+      };
+
+      // Inside the slider the hero starts hidden; the slider replays it on
+      // arrival instead. Everywhere else it runs immediately, as before.
+      if (!document.querySelector('.hero-carousel')) window.tpaPlayHeroIntro();
     }
 
     document.querySelectorAll('.counter').forEach(el => {

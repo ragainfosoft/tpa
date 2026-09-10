@@ -9,6 +9,80 @@ $schema_extra = '<script type="application/ld+json">' . json_encode([
   'description'=>'Expert tuition centre for 11 Plus, SATs, KS1–KS3, GCSE and A-Level. Two centres in Chadwell Heath and Chelmsford. Small classes, proven results since 2008.',
   'potentialAction'=>['@type'=>'SearchAction','target'=>['@type'=>'EntryPoint','urlTemplate'=>'https://www.talentpoolacademy.com/courses.php?q={search_term_string}'],'query-input'=>'required name=search_term_string'],
 ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . '</script>';
+$extra_css = '
+<style>
+  /* ── Hero slider ──────────────────────────────────────────
+     Slides are stacked in a single grid cell so the carousel is as tall as
+     its tallest slide. Bootstrap only toggles .active; the crossfade and
+     the height are ours, which stops the page jumping between a wide
+     campaign banner and the taller standing hero. */
+  .hero-carousel { position:relative; background:var(--navy); }
+  /* One height for the whole slider, taken from the campaign banner
+     aspect ratio, so both slides are exactly the same size and nothing
+     shifts as they change. The standing hero below is compressed to suit. */
+  .hero-carousel .carousel-inner { display:grid; grid-template-rows:minmax(0, 1fr);
+    overflow:hidden; aspect-ratio:1920/756; }
+  .hero-carousel .carousel-item { display:block; grid-column:1; grid-row:1; height:100%; min-height:0;
+    opacity:0; visibility:hidden; transform:none !important;
+    transition:opacity .55s ease, visibility .55s; }
+  .hero-carousel .carousel-item.active { opacity:1; visibility:visible; z-index:1; }
+  .hero-banner-link { display:block; line-height:0; height:100%; }
+  .hero-banner-link img { width:100%; height:100%; display:block; object-fit:cover; }
+
+  /* Slide 2 fitted to the same box */
+  .hero-carousel .hero-section { height:100%; min-height:0; display:flex; align-items:center; overflow:hidden;
+    padding-top:0; padding-bottom:0; }
+  .hero-carousel .hero-section > .container { padding-top:0 !important; padding-bottom:0 !important; width:100%; }
+  .hero-carousel .hero-section .row { --bs-gutter-y:0; align-items:center; }
+  .hero-carousel .hero-badge { margin-bottom:.6rem; font-size:.74rem; padding:.35rem .85rem; }
+  .hero-carousel .hero-title { font-size:clamp(1.6rem, 2.9vw, 2.7rem); margin-bottom:.6rem; line-height:1.15; }
+  .hero-carousel .hero-subtitle { font-size:clamp(.85rem, 1.05vw, .98rem); margin-bottom:.9rem; line-height:1.55; }
+  .hero-carousel .hero-ctas { margin-bottom:.85rem; }
+  .hero-carousel .hero-trust { gap:.5rem 1.1rem; }
+  .hero-carousel .hero-trust-item { font-size:.78rem; }
+  .hero-carousel .hero-graphic { height:100%; display:flex; align-items:center; justify-content:center; }
+  .hero-carousel .hero-img-wrap { max-height:78%; }
+  .hero-carousel .hero-img-wrap img { max-height:100%; width:auto; object-fit:cover; }
+
+  @media (max-width:991.98px) {
+    /* Below lg the artwork switches to the square social crop, so the slider
+       takes the same 1:1 box and the hero is trimmed to fit inside it
+       rather than the banner being cropped to fit the hero. */
+    .hero-carousel .carousel-inner { aspect-ratio:1/1; }
+    .hero-carousel .hero-graphic, .hero-carousel .hero-trust { display:none; }
+    .hero-carousel .hero-content { text-align:center; }
+    .hero-carousel .hero-ctas { justify-content:center; margin-bottom:0; }
+    .hero-carousel .hero-title { font-size:clamp(1.5rem, 6.4vw, 2.1rem); }
+    .hero-carousel .hero-subtitle { font-size:.88rem; margin-bottom:1rem; }
+  }
+  @media (max-width:400px) {
+    .hero-carousel .hero-badge { display:none; }
+    .hero-carousel .hero-subtitle { font-size:.82rem; margin-bottom:.75rem; }
+  }
+  .hero-carousel .carousel-control-prev,
+  .hero-carousel .carousel-control-next { width:6%; z-index:3; opacity:0; transition:opacity .25s; }
+  .hero-carousel:hover .carousel-control-prev,
+  .hero-carousel:hover .carousel-control-next,
+  .hero-carousel .carousel-control-prev:focus-visible,
+  .hero-carousel .carousel-control-next:focus-visible { opacity:.85; }
+  .hero-carousel .carousel-control-prev-icon,
+  .hero-carousel .carousel-control-next-icon { background-color:rgba(10,22,40,.55); border-radius:50%;
+    padding:1.15rem; background-size:45%; }
+  /* Overlaid on the image itself, a few pixels above the bottom edge — a
+     soft gradient sits behind them for legibility rather than a solid strip
+     that would cover the footer text printed on the banner itself. */
+  .hero-indicators { z-index:3; bottom:14px; margin:0; align-items:center;
+    padding:10px 14px 4px; border-radius:12px;
+    background:linear-gradient(0deg, rgba(0,0,0,.38), rgba(0,0,0,0)); }
+  .hero-indicators [data-bs-target] { width:32px; height:5px; border-radius:4px; border:none;
+    background-color:rgba(255,255,255,.55); opacity:1; transition:background-color .25s, width .25s; }
+  .hero-indicators .active { background-color:var(--gold); width:44px; }
+  @media (max-width:767.98px) {
+    .hero-carousel .carousel-control-prev, .hero-carousel .carousel-control-next { display:none; }
+    .hero-indicators { bottom:8px; }
+    .hero-indicators [data-bs-target] { width:24px; }
+  }
+</style>';
 require_once 'includes/announcements-data.php';
 require_once 'includes/star-students-data.php';
 require_once 'includes/feedback-data.php';
@@ -19,6 +93,25 @@ $star_students = get_star_students(); // all students for homepage carousel
 <!-- ================================================
        HERO
        ================================================ -->
+<div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-interval="6000">
+  <div class="carousel-inner">
+
+    <!-- Slide 1 — September batches campaign banner -->
+    <div class="carousel-item active">
+      <a href="<?= SITE_URL ?>/contact.php#assessment" class="hero-banner-link" aria-label="September batches now open — book a free assessment">
+        <picture>
+          <source media="(max-width: 767.98px)" type="image/webp" srcset="<?= SITE_URL ?>/images/banners/september-batches-mobile.webp">
+          <source media="(max-width: 767.98px)" type="image/jpeg" srcset="<?= SITE_URL ?>/images/banners/september-batches-mobile.jpg">
+          <source type="image/webp" srcset="<?= SITE_URL ?>/images/banners/september-batches-desktop.webp">
+          <img src="<?= SITE_URL ?>/images/banners/september-batches-desktop.jpg"
+               alt="September batches now open at Talent Pool Academy — Maths, English, VR and NVR. Chadwell Heath, Chelmsford and online. Enrol now."
+               width="1920" height="756" fetchpriority="high">
+        </picture>
+      </a>
+    </div>
+
+    <!-- Slide 2 — standing hero -->
+    <div class="carousel-item">
 <section class="hero-section" id="hero">
   <div class="hero-bg-image"></div>
   <div class="hero-overlay"></div>
@@ -56,6 +149,44 @@ $star_students = get_star_students(); // all students for homepage carousel
     </div>
   </div>
 </section>
+    </div>
+
+  </div>
+
+  <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>
+  </button>
+
+  <div class="carousel-indicators hero-indicators">
+    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="September batches"></button>
+    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Welcome"></button>
+  </div>
+</div>
+
+<script>
+// The hero's GSAP intro normally fires once on page load. Inside the slider
+// that happens while slide 2 is still hidden, so nobody sees it — replay it
+// each time the hero slide arrives.
+(function () {
+  var carousel = document.getElementById('heroCarousel');
+  if (!carousel) return;
+
+  carousel.addEventListener('slid.bs.carousel', function (e) {
+    if (e.to === 1 && typeof window.tpaPlayHeroIntro === 'function') window.tpaPlayHeroIntro();
+  });
+
+  // Pause the rotation while the visitor is interacting with the hero CTAs
+  carousel.addEventListener('mouseenter', function () {
+    var c = bootstrap.Carousel.getInstance(carousel); if (c) c.pause();
+  });
+  carousel.addEventListener('mouseleave', function () {
+    var c = bootstrap.Carousel.getInstance(carousel); if (c) c.cycle();
+  });
+})();
+</script>
 
 <!-- ================================================
        STATS BAR

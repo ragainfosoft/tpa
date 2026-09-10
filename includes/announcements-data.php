@@ -2,6 +2,41 @@
 // Central announcements data — edit here to update all pages
 $announcements = [
     [
+        'id'       => 'september-batches-2026',
+        'tag'      => 'Enrolling Now',
+        'tag_color'=> 'rgba(245,166,35,.16)',
+        'tag_text' => '#8a5a00',
+        'icon'     => 'fa-graduation-cap',
+        'icon_bg'  => '#fff3d6',
+        'icon_color'=> '#b26a00',
+        'title'    => 'September Batches Now Open — Maths, English, VR & NVR',
+        'short'    => 'Our September batches are open for enrolment across Chadwell Heath, Chelmsford and online. Group and one-to-one lessons available, with a free no-obligation assessment to place your child at the right level.',
+        'date'     => 'Enrolling for September 2026',
+        'date_icon'=> 'fa-calendar-check',
+        'has_more'  => true,
+        'more_url'  => SITE_URL . '/contact.php#assessment',
+        'full_content' => '<p><strong>September batches are now open</strong> at Talent Pool Academy — the ideal moment to build strong foundations before the academic year gathers pace.</p>
+<h5>Subjects Available</h5>
+<ul>
+  <li><strong>Maths</strong> — build problem-solving skills and number confidence</li>
+  <li><strong>English</strong> — improve communication, comprehension and writing</li>
+  <li><strong>Verbal Reasoning (VR)</strong> — future-ready learning for entrance exams</li>
+  <li><strong>Non-Verbal Reasoning (NVR)</strong> — sharpen logical and spatial thinking</li>
+</ul>
+<h5>Why Families Choose Us</h5>
+<ul>
+  <li><strong>16 years</strong> of teaching experience behind every lesson</li>
+  <li><strong>400+ positive reviews</strong> from parents across Essex and East London</li>
+  <li>Experienced tutors and <strong>personalised learning</strong> plans</li>
+  <li><strong>Group and one-to-one</strong> lessons to suit your child</li>
+  <li>Flexible <strong>online and in-person</strong> options</li>
+</ul>
+<h5>Where</h5>
+<p>Chadwell Heath (RM6 6PP) · Chelmsford (CM1 2AR) · Online — wherever you are in the UK.</p>
+<p>Places in each batch are limited so that class sizes stay small. Book a <strong>free assessment</strong> and we will recommend the right stage for your child.</p>
+<p><a href="' . SITE_URL . '/contact.php#assessment" style="font-weight:700;color:var(--gold);">Book Your Free Assessment →</a></p>',
+    ],
+    [
         'id'       => 'parkwood-partnership-2026',
         'tag'      => 'Partnership',
         'tag_color'=> 'rgba(10,22,40,.08)',

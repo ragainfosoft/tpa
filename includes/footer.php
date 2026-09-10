@@ -37,8 +37,6 @@
             <li><a href="<?= SITE_URL ?>/course-gcse.php">GCSE (Year 10–11)</a></li>
             <li><a href="<?= SITE_URL ?>/course-alevel.php">A-Level (Year 12–13)</a></li>
             <li><a href="<?= SITE_URL ?>/course-adult.php">Adult Learning</a></li>
-            <li><a href="<?= SITE_URL ?>/easter-camp.php"><i class="fas fa-egg me-1" aria-hidden="true"></i>Easter Camp 2026</a></li>
-            <li><a href="<?= SITE_URL ?>/summer-camp.php"><i class="fas fa-sun me-1" aria-hidden="true"></i>Summer Camp 2026</a></li>
             <li><a href="<?= SITE_URL ?>/announcements.php"><i class="fas fa-bullhorn me-1" aria-hidden="true"></i>Announcements</a></li>
           </ul>
         </div>

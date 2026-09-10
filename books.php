@@ -117,9 +117,27 @@ $extra_css = '
   /* ── Filter bar ─────────────────────────────────────────── */
   .book-filter-wrap { position:sticky; top:var(--nav-h,76px); z-index:20; background:rgba(255,255,255,.94);
     backdrop-filter:blur(12px); border-bottom:1px solid var(--gray-light); padding:.9rem 0; }
+  .book-filter-shell { position:relative; }
+  /* overflow-x:auto also clips vertically, so the chips need room inside the
+     scroller for their border and hover lift. */
   .book-filter { display:flex; gap:.55rem; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
-    padding-bottom:.15rem; scroll-snap-type:x proximity; }
+    padding:5px 0 7px; scroll-behavior:smooth; scroll-snap-type:x proximity; }
   .book-filter::-webkit-scrollbar { display:none; }
+
+  /* Fades under the arrows so a half-scrolled chip reads as continuing */
+  .book-filter-shell::before, .book-filter-shell::after { content:""; position:absolute; top:0; bottom:0;
+    width:56px; pointer-events:none; z-index:2; opacity:0; transition:opacity .25s; }
+  .book-filter-shell::before { left:0; background:linear-gradient(90deg, #fff 35%, rgba(255,255,255,0)); }
+  .book-filter-shell::after  { right:0; background:linear-gradient(270deg, #fff 35%, rgba(255,255,255,0)); }
+  .book-filter-shell.can-prev::before, .book-filter-shell.can-next::after { opacity:1; }
+  .filter-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:3;
+    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--gray-light); background:var(--white);
+    color:var(--navy); font-size:.78rem; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 3px 12px rgba(10,22,40,.14);
+    transition:background .2s, border-color .2s, color .2s; }
+  .filter-arrow:hover { background:var(--navy); border-color:var(--navy); color:var(--white); }
+  .filter-arrow.left { left:0; } .filter-arrow.right { right:0; }
+  .filter-arrow[hidden] { display:none; }
   .filter-chip { flex:0 0 auto; scroll-snap-align:start; display:inline-flex; align-items:center; gap:.5rem;
     border:1.5px solid var(--gray-light); background:var(--white); color:var(--text-muted);
     font-size:.86rem; font-weight:600; padding:.55rem 1.05rem; border-radius:40px; cursor:pointer;
@@ -158,7 +176,7 @@ $extra_css = '
   .book-title { font-weight:700; color:var(--navy); font-size:.98rem; line-height:1.35; margin-bottom:.45rem; }
   .book-meta { color:var(--text-muted); font-size:.78rem; margin-bottom:.85rem; display:flex; align-items:center; gap:.4rem; }
   .btn-enquire { margin-top:auto; width:100%; border:none; border-radius:10px; background:var(--navy); color:var(--white);
-    font-size:.82rem; font-weight:700; padding:.6rem .75rem; cursor:pointer;
+    font-size:.8rem; font-weight:700; padding:.55rem .6rem; cursor:pointer;
     transition:background .25s, color .25s, transform .15s; }
   .btn-enquire:hover { background:var(--gold); color:var(--navy); }
   .btn-enquire:active { transform:scale(.98); }
@@ -170,11 +188,14 @@ $extra_css = '
     opacity:0; transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s; }
   .book-card:hover .cover-peek, .cover-peek:focus-visible { opacity:1; transform:translate(-50%,0); }
   .cover-peek:hover { background:var(--gold); color:var(--navy); }
-  .book-actions { margin-top:auto; display:flex; gap:.4rem; }
-  .book-actions .btn-enquire { margin-top:0; flex:1 1 auto; }
-  .btn-sample { flex:0 0 auto; border:1.5px solid var(--gray-light); border-radius:10px; background:var(--white);
-    color:var(--navy); font-size:.78rem; font-weight:700; padding:.6rem .7rem; cursor:pointer;
-    transition:border-color .2s, background .2s; }
+  /* Stacked, not side by side: cards are ~196px wide in the six-up grid, so
+     two buttons on one row wrapped to three lines each. */
+  .book-actions { margin-top:auto; display:flex; flex-direction:column; gap:.4rem; }
+  .book-actions button { width:100%; white-space:nowrap; }
+  .book-actions .btn-enquire { margin-top:0; }
+  .btn-sample { border:1.5px solid var(--gray-light); border-radius:10px; background:var(--white);
+    color:var(--navy); font-size:.78rem; font-weight:700; padding:.55rem .6rem; cursor:pointer;
+    transition:border-color .2s, background .2s, color .2s; }
   .btn-sample:hover { border-color:var(--gold); background:var(--gold-pale); }
 
   /* ── Sample viewer ──────────────────────────────────────── */
@@ -195,9 +216,13 @@ $extra_css = '
      not resolve against a flex-sized parent, so the page used to overflow. */
   .sample-stage img { position:absolute; inset:1rem; width:calc(100% - 2rem); height:calc(100% - 2rem);
     object-fit:contain; filter:drop-shadow(0 18px 40px rgba(0,0,0,.55)); }
-  .sample-nav { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%;
-    border:none; background:rgba(255,255,255,.9); color:var(--navy); font-size:1rem; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; transition:background .2s, opacity .2s; }
+  /* z-index matters: the page image is absolutely positioned and comes after
+     the prev button in the DOM, so without this it sat on top of it and
+     swallowed the clicks. */
+  .sample-nav { position:absolute; top:50%; transform:translateY(-50%); z-index:2; width:44px; height:44px;
+    border-radius:50%; border:none; background:rgba(255,255,255,.9); color:var(--navy); font-size:1rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .2s, opacity .2s; }
   .sample-nav:hover { background:var(--gold); }
   .sample-nav:disabled { opacity:.25; cursor:default; }
   .sample-nav.prev { left:.8rem; } .sample-nav.next { right:.8rem; }
@@ -231,8 +256,6 @@ $extra_css = '
 
   @media (max-width:575.98px) {
     .cover-peek { display:none; }
-    .book-actions { flex-direction:column; }
-    .btn-sample { width:100%; }
     .sample-modal .modal-content { height:92vh; }
     .sample-stage { padding:.5rem; }
     .sample-stage img { inset:.5rem; width:calc(100% - 1rem); height:calc(100% - 1rem); }
@@ -293,6 +316,8 @@ require_once 'includes/header.php';
   <!-- FILTER BAR -->
   <div class="book-filter-wrap">
     <div class="container">
+      <div class="book-filter-shell">
+      <button type="button" class="filter-arrow left" id="filterPrev" aria-label="Scroll subjects left" hidden><i class="fas fa-chevron-left"></i></button>
       <div class="book-filter" role="tablist" aria-label="Filter books by subject">
         <button class="filter-chip active" data-filter="all" role="tab" aria-selected="true">
           All Books <span class="chip-count"><?= $totalBooks ?></span>
@@ -302,6 +327,8 @@ require_once 'includes/header.php';
           <?= htmlspecialchars($s['name'], ENT_QUOTES) ?> <span class="chip-count"><?= count($s['books']) ?></span>
         </button>
         <?php endforeach; ?>
+      </div>
+      <button type="button" class="filter-arrow right" id="filterNext" aria-label="Scroll subjects right" hidden><i class="fas fa-chevron-right"></i></button>
       </div>
     </div>
   </div>
@@ -351,7 +378,7 @@ require_once 'includes/header.php';
                           data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
                           data-stem="<?= $bk['stem'] ?>"
                           data-pages="<?= $bk['samples'] ?>">
-                    <i class="fas fa-book-open me-1"></i> Sample <span class="d-none d-sm-inline">pages</span>
+                    <i class="fas fa-book-open me-1"></i> Sample pages
                   </button>
                   <?php endif; ?>
                   <button type="button" class="btn-enquire js-enquire"
@@ -565,9 +592,49 @@ require_once 'includes/header.php';
     chips.forEach(function (c) {
       c.addEventListener('click', function () {
         applyFilter(c.dataset.filter);
+        c.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
         window.scrollTo({ top: document.querySelector('.book-filter-wrap').offsetTop - 10, behavior: 'smooth' });
       });
     });
+
+    // ── Filter bar: pin under the real navbar, and drive the arrows ──
+    var navbar   = document.querySelector('.navbar');
+    var shell    = document.querySelector('.book-filter-shell');
+    var scroller = document.querySelector('.book-filter');
+    var aPrev    = document.getElementById('filterPrev');
+    var aNext    = document.getElementById('filterNext');
+
+    // The navbar is 78px on phones but 69px on desktop, so a hard-coded
+    // sticky offset tucked the chips underneath it at some sizes.
+    function syncNavHeight() {
+      if (!navbar) return;
+      document.documentElement.style.setProperty('--nav-h', Math.round(navbar.getBoundingClientRect().height) + 'px');
+    }
+
+    function syncArrows() {
+      if (!scroller) return;
+      var max = scroller.scrollWidth - scroller.clientWidth;
+      var x   = scroller.scrollLeft;
+      var canPrev = x > 2, canNext = x < max - 2;
+      aPrev.hidden = !canPrev;
+      aNext.hidden = !canNext;
+      shell.classList.toggle('can-prev', canPrev);
+      shell.classList.toggle('can-next', canNext);
+    }
+
+    function nudge(dir) {
+      scroller.scrollBy({ left: dir * Math.max(160, scroller.clientWidth * 0.7), behavior: 'smooth' });
+    }
+
+    if (scroller) {
+      aPrev.addEventListener('click', function () { nudge(-1); });
+      aNext.addEventListener('click', function () { nudge(1); });
+      scroller.addEventListener('scroll', syncArrows, { passive: true });
+      window.addEventListener('resize', function () { syncNavHeight(); syncArrows(); });
+      window.addEventListener('load', function () { syncNavHeight(); syncArrows(); });
+      syncNavHeight();
+      syncArrows();
+    }
 
     // Deep link: books.php#grammar opens that subject
     var hash = (location.hash || '').replace('#', '');
