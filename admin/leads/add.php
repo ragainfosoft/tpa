@@ -16,6 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email      = trim($_POST['email'] ?? '');
     $phone      = trim($_POST['phone'] ?? '');
     $whatsapp   = trim($_POST['whatsapp'] ?? '');
+    $motherPh   = trim($_POST['mother_phone'] ?? '');
+    $fatherPh   = trim($_POST['father_phone'] ?? '');
+    $emergPh    = trim($_POST['emergency_phone'] ?? '');
     $childName  = trim($_POST['child_name'] ?? '');
     $childYear  = trim($_POST['child_year'] ?? '');
     $courseInt  = trim($_POST['course_interest'] ?? '');
@@ -29,8 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$phone && !$email) $errors[] = 'At least a phone number or email is required.';
 
     if (empty($errors)) {
-        $db->prepare('INSERT INTO leads (name,email,phone,whatsapp,child_name,child_year,course_interest,centre,source,notes,assigned_to,next_followup_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
-           ->execute([$name,$email,$phone,$whatsapp,$childName,$childYear,$courseInt,$centre,$source,$notes,$assignedTo,$followupDate?:null]);
+        $db->prepare('INSERT INTO leads (name,email,phone,whatsapp,mother_phone,father_phone,emergency_phone,child_name,child_year,course_interest,centre,source,notes,assigned_to,next_followup_date)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+           ->execute([$name,$email,$phone,$whatsapp,$motherPh?:null,$fatherPh?:null,$emergPh?:null,
+                      $childName,$childYear,$courseInt,$centre,$source,$notes,$assignedTo,$followupDate?:null]);
         $newId = $db->lastInsertId();
         logActivity('lead_added', "New lead #$newId: $name");
         setFlash('success', "Lead for $name added successfully.");
@@ -79,6 +84,18 @@ $yearGroups  = getYearGroups();
     <div class="col-sm-6">
       <label class="form-label fw-600 small">WhatsApp <span class="text-muted fw-400">(if different)</span></label>
       <input type="tel" name="whatsapp" class="form-control" value="<?= h($_POST['whatsapp'] ?? '') ?>" placeholder="07xxx xxxxxx">
+    </div>
+    <div class="col-sm-4">
+      <label class="form-label fw-600 small">Mother's Number <span class="text-muted fw-400">(optional)</span></label>
+      <input type="tel" name="mother_phone" class="form-control" value="<?= h($_POST['mother_phone'] ?? '') ?>" placeholder="07xxx xxxxxx">
+    </div>
+    <div class="col-sm-4">
+      <label class="form-label fw-600 small">Father's Number <span class="text-muted fw-400">(optional)</span></label>
+      <input type="tel" name="father_phone" class="form-control" value="<?= h($_POST['father_phone'] ?? '') ?>" placeholder="07xxx xxxxxx">
+    </div>
+    <div class="col-sm-4">
+      <label class="form-label fw-600 small">Caretaker / Emergency</label>
+      <input type="tel" name="emergency_phone" class="form-control" value="<?= h($_POST['emergency_phone'] ?? '') ?>" placeholder="07xxx xxxxxx">
     </div>
   </div>
 

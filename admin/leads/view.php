@@ -171,6 +171,16 @@ $typeIcons = ['call'=>'telephone','whatsapp'=>'whatsapp','email'=>'envelope','vi
       <table class="table table-sm table-borderless mb-0 small">
         <tr><td class="text-muted fw-600 pe-3">Phone</td><td><?= $lead['phone'] ? '<a href="tel:'.h($lead['phone']).'">'.h($lead['phone']).'</a>' : '—' ?></td></tr>
         <tr><td class="text-muted fw-600">WhatsApp</td><td><?= $lead['whatsapp'] ? '<a href="'.h(waLink($lead['whatsapp'])).'" target="_blank">'.h($lead['whatsapp']).'</a>' : '—' ?></td></tr>
+        <?php foreach ([
+          'mother_phone'    => "Mother's",
+          'father_phone'    => "Father's",
+          'emergency_phone' => 'Caretaker / Emergency',
+        ] as $col => $label): if (empty($lead[$col])) continue; ?>
+        <tr>
+          <td class="text-muted fw-600 pe-3"><?= $label ?></td>
+          <td><a href="tel:<?= h($lead[$col]) ?>"><?= h($lead[$col]) ?></a></td>
+        </tr>
+        <?php endforeach; ?>
         <tr><td class="text-muted fw-600">Email</td><td style="word-break:break-all;"><?= $lead['email'] ? '<a href="mailto:'.h($lead['email']).'">'.h($lead['email']).'</a>' : '—' ?></td></tr>
       </table>
     </div>

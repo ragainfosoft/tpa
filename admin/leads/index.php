@@ -180,6 +180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_update_status'])
           <td>
             <div class="fw-600"><?= h($l['name']) ?></div>
             <div class="small text-muted"><?= h($l['email'] ?? '') ?> <?= h($l['phone'] ?? '') ?></div>
+            <?php if (!empty($l['emergency_phone']) && $l['emergency_phone'] !== ($l['phone'] ?? '')): ?>
+              <div class="small text-muted"><i class="bi bi-telephone-plus me-1"></i>Emergency: <?= h($l['emergency_phone']) ?></div>
+            <?php endif; ?>
           </td>
           <td><?= h($l['child_name'] ?? '—') ?> <span class="badge bg-light text-dark border"><?= h($l['child_year'] ?? '') ?></span></td>
           <td><?= h($l['course_interest'] ?? '—') ?></td>

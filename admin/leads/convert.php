@@ -28,14 +28,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // 1. Create student
         $ref = generateStudentRef();
-        $db->prepare('INSERT INTO students (student_ref,first_name,last_name,dob,year_group,school,gender,centre,join_date,notes,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-           ->execute([$ref, trim($_POST['first_name']), trim($_POST['last_name']), $_POST['dob']?:null, $_POST['year_group'], trim($_POST['school']), $_POST['gender'], $_POST['centre'], date('Y-m-d'), trim($_POST['notes']), 'active']);
+        $db->prepare('INSERT INTO students (student_ref,first_name,last_name,dob,year_group,school,gender,centre,join_date,notes,medical_notes,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+           ->execute([$ref, trim($_POST['first_name']), trim($_POST['last_name']), $_POST['dob']?:null, $_POST['year_group'], trim($_POST['school']), $_POST['gender'], $_POST['centre'], date('Y-m-d'), trim($_POST['notes']), trim($_POST['medical_notes'] ?? '') ?: null, 'active']);
         $studentId = $db->lastInsertId();
 
         // 2. Create parent contact
         $db->prepare('INSERT INTO student_parents (student_id,parent_name,relationship,email,phone,whatsapp,is_primary) VALUES (?,?,?,?,?,?,1)')
            ->execute([$studentId, trim($_POST['parent_name']), $_POST['parent_relationship'], trim($_POST['parent_email']), trim($_POST['parent_phone']), trim($_POST['parent_whatsapp'])]);
         $parentId = $db->lastInsertId();
+
+        // 2b. Carry over any extra numbers captured on the lead as secondary
+        // contacts, so mother/father/emergency details survive conversion.
+        $primaryPhone = trim($_POST['parent_phone'] ?? '');
+        $extraStmt = $db->prepare('INSERT INTO student_parents (student_id,parent_name,relationship,phone,is_primary) VALUES (?,?,?,?,0)');
+        foreach ([
+            ['mother_phone',    'Mother',   'Mother'],
+            ['father_phone',    'Father',   'Father'],
+            ['emergency_phone', 'Guardian', 'Caretaker / Emergency'],
+        ] as [$col, $relationship, $label]) {
+            $num = trim($lead[$col] ?? '');
+            if ($num === '' || $num === $primaryPhone) continue;
+            $extraStmt->execute([$studentId, $label, $relationship, $num]);
+        }
 
         // Auto-create user account for parent if email provided
         if (!empty(trim($_POST['parent_email'] ?? ''))) {
@@ -98,6 +112,7 @@ $d = [
     'parent_phone'        => $lead['phone'] ?? '',
     'parent_whatsapp'     => $lead['whatsapp'] ?? '',
     'notes'               => $lead['notes'] ?? '',
+    'medical_notes'       => '',
     'school'              => '',
     'gender'              => '',
     'dob'                 => '',
@@ -187,6 +202,10 @@ require_once __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-12"><label class="form-label fw-600 small">Notes</label><textarea name="notes" class="form-control" rows="2"><?= h($d['notes']) ?></textarea></div>
+        <div class="col-12">
+          <label class="form-label fw-600 small">Medical Notes <span class="text-muted fw-400">(allergies, conditions, medication)</span></label>
+          <textarea name="medical_notes" class="form-control" rows="2"><?= h($d['medical_notes'] ?? '') ?></textarea>
+        </div>
       </div>
     </div>
 

@@ -25,9 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty(trim($_POST['phone'] ?? '')) && empty(trim($_POST['email'] ?? ''))) $errors[] = 'Phone or email required.';
 
     if (empty($errors)) {
-        $db->prepare('UPDATE leads SET name=?,email=?,phone=?,whatsapp=?,child_name=?,child_year=?,course_interest=?,centre=?,source=?,notes=?,assigned_to=?,next_followup_date=?,updated_at=NOW() WHERE id=?')
+        $db->prepare('UPDATE leads SET name=?,email=?,phone=?,whatsapp=?,mother_phone=?,father_phone=?,emergency_phone=?,child_name=?,child_year=?,course_interest=?,centre=?,source=?,notes=?,assigned_to=?,next_followup_date=?,updated_at=NOW() WHERE id=?')
            ->execute([
                trim($_POST['name']), trim($_POST['email']), trim($_POST['phone']), trim($_POST['whatsapp']),
+               trim($_POST['mother_phone'] ?? '') ?: null,
+               trim($_POST['father_phone'] ?? '') ?: null,
+               trim($_POST['emergency_phone'] ?? '') ?: null,
                trim($_POST['child_name']), $_POST['child_year'], $_POST['course_interest'], $_POST['centre'],
                $_POST['source'], trim($_POST['notes']),
                (int)($_POST['assigned_to'] ?? 0) ?: null,
@@ -73,6 +76,9 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="col-sm-6"><label class="form-label fw-600 small">Email</label><input type="email" name="email" class="form-control" value="<?= h($lead['email'] ?? '') ?>"></div>
         <div class="col-sm-6"><label class="form-label fw-600 small">Phone *</label><input type="tel" name="phone" class="form-control" value="<?= h($lead['phone'] ?? '') ?>"></div>
         <div class="col-sm-6"><label class="form-label fw-600 small">WhatsApp</label><input type="tel" name="whatsapp" class="form-control" value="<?= h($lead['whatsapp'] ?? '') ?>"></div>
+        <div class="col-sm-4"><label class="form-label fw-600 small">Mother's Number <span class="text-muted fw-400">(optional)</span></label><input type="tel" name="mother_phone" class="form-control" value="<?= h($lead['mother_phone'] ?? '') ?>"></div>
+        <div class="col-sm-4"><label class="form-label fw-600 small">Father's Number <span class="text-muted fw-400">(optional)</span></label><input type="tel" name="father_phone" class="form-control" value="<?= h($lead['father_phone'] ?? '') ?>"></div>
+        <div class="col-sm-4"><label class="form-label fw-600 small">Caretaker / Emergency</label><input type="tel" name="emergency_phone" class="form-control" value="<?= h($lead['emergency_phone'] ?? '') ?>"></div>
       </div>
     </div>
 

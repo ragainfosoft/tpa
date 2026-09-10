@@ -133,6 +133,18 @@ require_once 'includes/header.php';
                   <input type="tel" id="phone" name="phone" class="form-control-tpa" placeholder="07xxx xxxxxx" required autocomplete="tel">
                 </div>
                 <div class="col-sm-6">
+                  <label class="form-label-tpa" for="mother_phone">Mother's Number <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                  <input type="tel" id="mother_phone" name="mother_phone" class="form-control-tpa" placeholder="07xxx xxxxxx" autocomplete="off">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label-tpa" for="father_phone">Father's Number <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                  <input type="tel" id="father_phone" name="father_phone" class="form-control-tpa" placeholder="07xxx xxxxxx" autocomplete="off">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label-tpa" for="emergency_phone">Caretaker / Emergency Number *</label>
+                  <input type="tel" id="emergency_phone" name="emergency_phone" class="form-control-tpa" placeholder="07xxx xxxxxx" required autocomplete="off">
+                </div>
+                <div class="col-sm-6">
                   <label class="form-label-tpa" for="course-interest">Course Interest *</label>
                   <select id="course-interest" name="course-interest" class="form-select-tpa" required>
                     <option value="">Select a course</option>

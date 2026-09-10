@@ -249,9 +249,12 @@ document.addEventListener('DOMContentLoaded', function () {
       TpaForm.btnLoading(btn);
       const fd = new FormData(contactForm);
       TpaForm.postLead({
-        name:       fd.get('child_name')      || '',
-        email:      fd.get('email')           || '',
-        phone:      fd.get('phone')           || '',
+        name:            fd.get('child_name')      || '',
+        email:           fd.get('email')           || '',
+        phone:           fd.get('phone')           || '',
+        mother_phone:    fd.get('mother_phone')    || '',
+        father_phone:    fd.get('father_phone')    || '',
+        emergency_phone: fd.get('emergency_phone') || '',
         child_name: fd.get('child_name')      || '',
         year_group: fd.get('child-year')      || '',
         subject:    fd.get('course-interest') || '',

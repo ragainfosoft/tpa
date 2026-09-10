@@ -28,6 +28,16 @@ if (!$name) $name = $childName; // no parent name submitted — use child name a
 
 $email     = trim($input['email']     ?? '');
 $phone     = trim($input['phone']     ?? '');
+
+// Parent / emergency numbers — mother and father optional, emergency required
+// on the public assessment form (enforced client-side and re-checked below).
+$motherPhone    = trim($input['mother_phone']    ?? '');
+$fatherPhone    = trim($input['father_phone']    ?? '');
+$emergencyPhone = trim($input['emergency_phone'] ?? '');
+
+// Fall back to the emergency number if no main number was submitted, so the
+// lead is still reachable and dedupe keeps working.
+if (!$phone && $emergencyPhone) $phone = $emergencyPhone;
 $childYear = trim($input['year_group'] ?? $input['child_year'] ?? '');
 
 // Build course_interest: prefer 'subject', append subject_detail if different
@@ -97,8 +107,10 @@ try {
         exit;
     }
 
-    $db->prepare('INSERT INTO leads (name,email,phone,whatsapp,child_name,child_year,course_interest,centre,source,notes,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-       ->execute([$name,$email,$phone,$phone,$childName,$childYear,$courseInt,$centre,$sourceFinal,$notes,'new']);
+    $db->prepare('INSERT INTO leads (name,email,phone,whatsapp,mother_phone,father_phone,emergency_phone,child_name,child_year,course_interest,centre,source,notes,status)
+                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+       ->execute([$name,$email,$phone,$phone,$motherPhone ?: null,$fatherPhone ?: null,$emergencyPhone ?: null,
+                  $childName,$childYear,$courseInt,$centre,$sourceFinal,$notes,'new']);
     $leadId = $db->lastInsertId();
 
     // Optional: fire WhatsApp welcome
