@@ -58,7 +58,7 @@ $series = [
     'accent' => '#B8BE2E',
     'icon'   => 'fa-book-bookmark',
     'level'  => '11 Plus · Ages 9–11',
-    'books'  => [4],
+    'books'  => [3, 4],
     'blurb'  => 'The 11 Plus word bank — high-frequency exam vocabulary with definitions, context sentences and recall practice.',
   ],
   'sure-pass' => [
@@ -71,6 +71,14 @@ $series = [
   ],
 ];
 
+// Sample pages: images/books/samples/<stem>/p1.jpg … written by the
+// extraction script, with a manifest of how many pages each book has.
+$sampleManifest = [];
+$manifestFile = __DIR__ . '/images/books/samples/manifest.json';
+if (is_readable($manifestFile)) {
+  $sampleManifest = json_decode(file_get_contents($manifestFile), true) ?: [];
+}
+
 // Book number → suggested school year. Edit here to change every card.
 // A series can override this wholesale with its own 'level' key.
 function tpa_book_year(int $n): string  { return 'Year ' . $n; }
@@ -82,6 +90,7 @@ function tpa_book_ages(int $n): string  { return 'Ages ' . ($n + 4) . '–' . ($
  * Returns: label, cover filename stem, meta line and full title.
  */
 function tpa_book(string $slug, array $series, $book): array {
+  global $sampleManifest;
   if (is_array($book)) {
     $label = $book['label'];
     $file  = $slug . '-' . $book['file'];
@@ -92,10 +101,12 @@ function tpa_book(string $slug, array $series, $book): array {
     $meta  = $series['level'] ?? (tpa_book_year($book) . ' · ' . tpa_book_ages($book));
   }
   return [
-    'label' => $label,
-    'title' => $series['name'] . ' — ' . $label,
-    'img'   => SITE_URL . '/images/books/' . $file . '.jpg',
-    'meta'  => $meta,
+    'label'   => $label,
+    'title'   => $series['name'] . ' — ' . $label,
+    'stem'    => $file,
+    'img'     => SITE_URL . '/images/books/' . $file . '.jpg',
+    'meta'    => $meta,
+    'samples' => (int)($sampleManifest[$file] ?? 0),
   ];
 }
 
@@ -152,6 +163,52 @@ $extra_css = '
   .btn-enquire:hover { background:var(--gold); color:var(--navy); }
   .btn-enquire:active { transform:scale(.98); }
 
+  /* ── Look inside ────────────────────────────────────────── */
+  .cover-peek { position:absolute; left:50%; bottom:.6rem; transform:translate(-50%, calc(100% + .8rem));
+    border:none; border-radius:30px; background:rgba(10,22,40,.92); color:#fff; font-size:.72rem;
+    font-weight:700; padding:.4rem .85rem; cursor:pointer; white-space:nowrap;
+    opacity:0; transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s; }
+  .book-card:hover .cover-peek, .cover-peek:focus-visible { opacity:1; transform:translate(-50%,0); }
+  .cover-peek:hover { background:var(--gold); color:var(--navy); }
+  .book-actions { margin-top:auto; display:flex; gap:.4rem; }
+  .book-actions .btn-enquire { margin-top:0; flex:1 1 auto; }
+  .btn-sample { flex:0 0 auto; border:1.5px solid var(--gray-light); border-radius:10px; background:var(--white);
+    color:var(--navy); font-size:.78rem; font-weight:700; padding:.6rem .7rem; cursor:pointer;
+    transition:border-color .2s, background .2s; }
+  .btn-sample:hover { border-color:var(--gold); background:var(--gold-pale); }
+
+  /* ── Sample viewer ──────────────────────────────────────── */
+  /* Height-budgeted so the footer CTA is never pushed below the fold:
+     the stage flexes and the page image scales to whatever is left over. */
+  .sample-modal .modal-content { border:none; border-radius:18px; overflow:hidden; background:var(--navy);
+    /* Definite height, so the flexed stage has something to fill and the
+       absolutely positioned page image has a box to scale into. */
+    height:min(88vh, 960px); display:flex; flex-direction:column; }
+  .sample-modal .sample-bar, .sample-modal .sample-thumbs, .sample-modal .sample-foot { flex:0 0 auto; }
+  .sample-bar { display:flex; align-items:center; gap:1rem; padding:.9rem 1.2rem; color:#fff;
+    border-bottom:1px solid rgba(255,255,255,.12); }
+  .sample-bar h5 { margin:0; font-size:.98rem; font-weight:700; }
+  .sample-bar .page-count { font-size:.78rem; color:rgba(255,255,255,.65); }
+  .sample-stage { position:relative; background:#0b1220; display:flex; align-items:center;
+    justify-content:center; flex:1 1 auto; min-height:0; padding:1rem; }
+  /* Absolutely filled rather than max-height:100% — a percentage height does
+     not resolve against a flex-sized parent, so the page used to overflow. */
+  .sample-stage img { position:absolute; inset:1rem; width:calc(100% - 2rem); height:calc(100% - 2rem);
+    object-fit:contain; filter:drop-shadow(0 18px 40px rgba(0,0,0,.55)); }
+  .sample-nav { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%;
+    border:none; background:rgba(255,255,255,.9); color:var(--navy); font-size:1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .2s, opacity .2s; }
+  .sample-nav:hover { background:var(--gold); }
+  .sample-nav:disabled { opacity:.25; cursor:default; }
+  .sample-nav.prev { left:.8rem; } .sample-nav.next { right:.8rem; }
+  .sample-thumbs { display:flex; gap:.45rem; overflow-x:auto; padding:.75rem 1.2rem; scrollbar-width:thin; }
+  .sample-thumbs img { height:58px; width:auto; border-radius:4px; cursor:pointer; opacity:.5;
+    border:2px solid transparent; transition:opacity .2s, border-color .2s; }
+  .sample-thumbs img.active, .sample-thumbs img:hover { opacity:1; border-color:var(--gold); }
+  .sample-foot { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; justify-content:space-between;
+    padding:.85rem 1.2rem; background:var(--white); }
+  .sample-foot p { margin:0; font-size:.8rem; color:var(--text-muted); }
+
   /* ── Empty state ────────────────────────────────────────── */
   .books-empty { display:none; text-align:center; padding:4rem 1rem; color:var(--text-muted); }
 
@@ -173,6 +230,15 @@ $extra_css = '
   .modal-ok i { font-size:3rem; color:#28a745; margin-bottom:1rem; }
 
   @media (max-width:575.98px) {
+    .cover-peek { display:none; }
+    .book-actions { flex-direction:column; }
+    .btn-sample { width:100%; }
+    .sample-modal .modal-content { height:92vh; }
+    .sample-stage { padding:.5rem; }
+    .sample-stage img { inset:.5rem; width:calc(100% - 1rem); height:calc(100% - 1rem); }
+    .sample-thumbs { padding:.5rem .8rem; }
+    .sample-thumbs img { height:44px; }
+    .sample-nav { width:38px; height:38px; }
     .series-head { gap:.75rem; margin:2.5rem 0 1.15rem; }
     .series-mark { width:40px; height:40px; flex:0 0 40px; font-size:1rem; }
     .series-name { font-size:1.1rem; }
@@ -265,17 +331,36 @@ require_once 'includes/header.php';
               <div class="book-cover">
                 <span class="book-num"><?= htmlspecialchars($bk['label'], ENT_QUOTES) ?></span>
                 <img src="<?= $bk['img'] ?>" alt="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?> — Talent Pool Academy workbook cover" loading="lazy" width="640" height="853">
+                <?php if ($bk['samples']): ?>
+                <button type="button" class="cover-peek js-sample"
+                        data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
+                        data-stem="<?= $bk['stem'] ?>"
+                        data-pages="<?= $bk['samples'] ?>"
+                        aria-label="Look inside <?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>">
+                  <i class="fas fa-magnifying-glass-plus"></i> Look inside
+                </button>
+                <?php endif; ?>
               </div>
               <div class="book-body">
                 <div class="book-series-tag" style="color:<?= $s['accent'] ?>;"><?= htmlspecialchars($s['name'], ENT_QUOTES) ?></div>
                 <div class="book-title"><?= htmlspecialchars($bk['label'], ENT_QUOTES) ?></div>
                 <?php if ($bk['meta']): ?><div class="book-meta"><i class="fas fa-child"></i><?= $bk['meta'] ?></div><?php endif; ?>
-                <button type="button" class="btn-enquire js-enquire"
-                        data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
-                        data-img="<?= $bk['img'] ?>"
-                        data-meta="<?= htmlspecialchars($bk['meta'], ENT_QUOTES) ?>">
-                  <i class="fas fa-envelope me-1"></i> Enquire to Buy
-                </button>
+                <div class="book-actions">
+                  <?php if ($bk['samples']): ?>
+                  <button type="button" class="btn-sample js-sample"
+                          data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
+                          data-stem="<?= $bk['stem'] ?>"
+                          data-pages="<?= $bk['samples'] ?>">
+                    <i class="fas fa-book-open me-1"></i> Sample <span class="d-none d-sm-inline">pages</span>
+                  </button>
+                  <?php endif; ?>
+                  <button type="button" class="btn-enquire js-enquire"
+                          data-book="<?= htmlspecialchars($bk['title'], ENT_QUOTES) ?>"
+                          data-img="<?= $bk['img'] ?>"
+                          data-meta="<?= htmlspecialchars($bk['meta'], ENT_QUOTES) ?>">
+                    <i class="fas fa-envelope me-1"></i> Enquire to Buy
+                  </button>
+                </div>
               </div>
             </article>
           </div>
@@ -332,6 +417,38 @@ require_once 'includes/header.php';
       </div>
     </div>
   </section>
+
+  <!-- SAMPLE PAGES VIEWER -->
+  <div class="modal fade sample-modal" id="sampleModal" tabindex="-1" aria-labelledby="sampleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+
+        <div class="sample-bar">
+          <div class="flex-grow-1">
+            <h5 id="sampleLabel">Sample pages</h5>
+            <span class="page-count" id="smCount"></span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="sample-stage">
+          <button type="button" class="sample-nav prev" id="smPrev" aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>
+          <img id="smImg" src="" alt="">
+          <button type="button" class="sample-nav next" id="smNext" aria-label="Next page"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="sample-thumbs" id="smThumbs"></div>
+
+        <div class="sample-foot">
+          <p><i class="fas fa-circle-info me-1" style="color:var(--gold);"></i>A short extract — the full book has considerably more.</p>
+          <button type="button" class="btn-primary-tpa js-sample-enquire" style="font-size:.82rem;padding:.5rem 1.1rem;">
+            <i class="fas fa-envelope"></i> Enquire to Buy
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <!-- ENQUIRY MODAL -->
   <div class="modal fade" id="bookEnquiryModal" tabindex="-1" aria-labelledby="bookEnquiryLabel" aria-hidden="true">
@@ -456,6 +573,62 @@ require_once 'includes/header.php';
     var hash = (location.hash || '').replace('#', '');
     if (hash && document.querySelector('.filter-chip[data-filter="' + hash + '"]')) applyFilter(hash);
 
+    // ── Sample page viewer ────────────────────────────────────
+    var smEl = document.getElementById('sampleModal');
+    var smModal = smEl ? new bootstrap.Modal(smEl) : null;
+    var smImg = document.getElementById('smImg');
+    var smThumbs = document.getElementById('smThumbs');
+    var smCount = document.getElementById('smCount');
+    var smPrev = document.getElementById('smPrev');
+    var smNext = document.getElementById('smNext');
+    var sm = { stem: '', pages: 0, i: 1, book: '' };
+
+    function smSrc(n) { return '<?= SITE_URL ?>/images/books/samples/' + sm.stem + '/p' + n + '.jpg'; }
+
+    function smShow(n) {
+      sm.i = Math.min(Math.max(1, n), sm.pages);
+      smImg.src = smSrc(sm.i);
+      smImg.alt = sm.book + ' — sample page ' + sm.i;
+      smCount.textContent = 'Page ' + sm.i + ' of ' + sm.pages;
+      smPrev.disabled = sm.i === 1;
+      smNext.disabled = sm.i === sm.pages;
+      Array.prototype.forEach.call(smThumbs.children, function (t, idx) {
+        t.classList.toggle('active', idx + 1 === sm.i);
+      });
+      var active = smThumbs.children[sm.i - 1];
+      if (active) active.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('.js-sample').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        sm.stem  = btn.dataset.stem;
+        sm.pages = parseInt(btn.dataset.pages, 10) || 1;
+        sm.book  = btn.dataset.book;
+        document.getElementById('sampleLabel').textContent = sm.book;
+
+        smThumbs.innerHTML = '';
+        for (var n = 1; n <= sm.pages; n++) {
+          var t = document.createElement('img');
+          t.src = smSrc(n);
+          t.alt = 'Page ' + n;
+          t.loading = 'lazy';
+          t.dataset.page = n;
+          t.addEventListener('click', function () { smShow(parseInt(this.dataset.page, 10)); });
+          smThumbs.appendChild(t);
+        }
+        smShow(1);
+        smModal.show();
+      });
+    });
+
+    if (smPrev) smPrev.addEventListener('click', function () { smShow(sm.i - 1); });
+    if (smNext) smNext.addEventListener('click', function () { smShow(sm.i + 1); });
+    document.addEventListener('keydown', function (e) {
+      if (!smEl || !smEl.classList.contains('show')) return;
+      if (e.key === 'ArrowLeft')  smShow(sm.i - 1);
+      if (e.key === 'ArrowRight') smShow(sm.i + 1);
+    });
+
     // ── Modal ─────────────────────────────────────────────────
     var modalEl = document.getElementById('bookEnquiryModal');
     if (!modalEl) return;
@@ -464,17 +637,33 @@ require_once 'includes/header.php';
     var okPanel = document.getElementById('bkSuccess');
     var errBox  = document.getElementById('bkError');
 
+    function openEnquiry(book, img, meta) {
+      document.getElementById('bkTitle').value = book;
+      document.getElementById('bkImg').src     = img;
+      document.getElementById('bkImg').alt     = book;
+      document.getElementById('bookEnquiryLabel').textContent = book;
+      document.getElementById('bkMeta').textContent = meta || '';
+      form.style.display    = '';
+      okPanel.style.display = 'none';
+      errBox.style.display  = 'none';
+      modal.show();
+    }
+
     document.querySelectorAll('.js-enquire').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        document.getElementById('bkTitle').value  = btn.dataset.book;
-        document.getElementById('bkImg').src      = btn.dataset.img;
-        document.getElementById('bkImg').alt      = btn.dataset.book;
-        document.getElementById('bookEnquiryLabel').textContent = btn.dataset.book;
-        document.getElementById('bkMeta').textContent = btn.dataset.meta;
-        form.style.display   = '';
-        okPanel.style.display = 'none';
-        errBox.style.display = 'none';
-        modal.show();
+        openEnquiry(btn.dataset.book, btn.dataset.img, btn.dataset.meta);
+      });
+    });
+
+    // "Enquire to Buy" inside the sample viewer — swap one modal for the other
+    document.querySelectorAll('.js-sample-enquire').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var book = sm.book, img = '<?= SITE_URL ?>/images/books/' + sm.stem + '.jpg';
+        smEl.addEventListener('hidden.bs.modal', function once() {
+          smEl.removeEventListener('hidden.bs.modal', once);
+          openEnquiry(book, img, '');
+        });
+        smModal.hide();
       });
     });
 
