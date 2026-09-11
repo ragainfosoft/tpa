@@ -71,19 +71,20 @@ $extra_css = '
   .hero-carousel .carousel-control-prev-icon,
   .hero-carousel .carousel-control-next-icon { background-color:rgba(10,22,40,.55); border-radius:50%;
     padding:1.15rem; background-size:45%; }
-  /* Overlaid on the image itself, a few pixels above the bottom edge — a
-     soft gradient sits behind them for legibility rather than a solid strip
-     that would cover the footer text printed on the banner itself. */
-  .hero-indicators { z-index:3; bottom:26px; margin:0; align-items:center;
-    padding:10px 14px 4px; border-radius:12px;
-    background:linear-gradient(0deg, rgba(0,0,0,.38), rgba(0,0,0,0)); }
+  /* No boxed background here on purpose: that box had its own small height
+     (padding + content), so anchoring it with `bottom` floated the whole
+     rectangle — gradient included — above the image as a detached strip.
+     Legibility instead comes from a per-dot shadow below, which paints
+     nothing but the dots themselves. */
+  .hero-indicators { z-index:3; bottom:26px; margin:0; align-items:center; }
   /* A site-wide accessibility rule gives every <a>/<button> a 44px minimum
      tap height below 768px, which inflated these into visible blocks. Keep
      the thin bar and restore the 44px tap target as an invisible pseudo-
      element instead, so touch accessibility and the visual size are
      independent of each other. */
   .hero-indicators [data-bs-target] { position:relative; min-height:0; width:32px; height:5px;
-    border-radius:4px; border:none; background-color:rgba(255,255,255,.55); opacity:1;
+    border-radius:4px; border:none; background-color:rgba(255,255,255,.75); opacity:1;
+    box-shadow:0 1px 5px rgba(0,0,0,.55);
     transition:background-color .25s, width .25s; }
   .hero-indicators [data-bs-target]::after { content:""; position:absolute; inset:-16px -6px; }
   .hero-indicators .active { background-color:var(--gold); width:44px; }
