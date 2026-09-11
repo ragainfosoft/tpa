@@ -19,10 +19,13 @@ $extra_css = '
   .hero-carousel { position:relative; background:var(--navy); }
   /* One height for the whole slider, taken from the campaign banner
      aspect ratio, so both slides are exactly the same size and nothing
-     shifts as they change. The standing hero below is compressed to suit. */
-  .hero-carousel .carousel-inner { display:grid; grid-template-rows:minmax(0, 1fr);
-    overflow:hidden; aspect-ratio:1920/756; }
-  .hero-carousel .carousel-item { display:block; grid-column:1; grid-row:1; height:100%; min-height:0;
+     shifts as they change. The standing hero below is compressed to suit.
+     Items are pinned edge-to-edge with inset:0 rather than sized by a
+     percentage height against that aspect-ratio box, which was off by a
+     sub-pixel in some browsers and showed as a hairline of the navy
+     background under the slide; inset:0 pins to all four edges directly. */
+  .hero-carousel .carousel-inner { position:relative; overflow:hidden; aspect-ratio:1920/756; }
+  .hero-carousel .carousel-item { position:absolute; inset:0; display:block;
     opacity:0; visibility:hidden; transform:none !important;
     transition:opacity .55s ease, visibility .55s; }
   .hero-carousel .carousel-item.active { opacity:1; visibility:visible; z-index:1; }
@@ -71,16 +74,23 @@ $extra_css = '
   /* Overlaid on the image itself, a few pixels above the bottom edge — a
      soft gradient sits behind them for legibility rather than a solid strip
      that would cover the footer text printed on the banner itself. */
-  .hero-indicators { z-index:3; bottom:14px; margin:0; align-items:center;
+  .hero-indicators { z-index:3; bottom:26px; margin:0; align-items:center;
     padding:10px 14px 4px; border-radius:12px;
     background:linear-gradient(0deg, rgba(0,0,0,.38), rgba(0,0,0,0)); }
-  .hero-indicators [data-bs-target] { width:32px; height:5px; border-radius:4px; border:none;
-    background-color:rgba(255,255,255,.55); opacity:1; transition:background-color .25s, width .25s; }
+  /* A site-wide accessibility rule gives every <a>/<button> a 44px minimum
+     tap height below 768px, which inflated these into visible blocks. Keep
+     the thin bar and restore the 44px tap target as an invisible pseudo-
+     element instead, so touch accessibility and the visual size are
+     independent of each other. */
+  .hero-indicators [data-bs-target] { position:relative; min-height:0; width:32px; height:5px;
+    border-radius:4px; border:none; background-color:rgba(255,255,255,.55); opacity:1;
+    transition:background-color .25s, width .25s; }
+  .hero-indicators [data-bs-target]::after { content:""; position:absolute; inset:-16px -6px; }
   .hero-indicators .active { background-color:var(--gold); width:44px; }
   @media (max-width:767.98px) {
     .hero-carousel .carousel-control-prev, .hero-carousel .carousel-control-next { display:none; }
-    .hero-indicators { bottom:8px; }
-    .hero-indicators [data-bs-target] { width:24px; }
+    .hero-indicators { bottom:16px; }
+    .hero-indicators [data-bs-target]:not(.active) { width:24px; }
   }
 </style>';
 require_once 'includes/announcements-data.php';

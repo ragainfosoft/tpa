@@ -1179,7 +1179,7 @@ a.contact-card-value:hover { color: var(--gold); }
   display: flex;
   gap: 3rem;
   width: max-content;
-  animation: logo-scroll 28s linear infinite;
+  animation: logo-scroll 70s linear infinite;
 }
 
 .logo-track:hover { animation-play-state: paused; }

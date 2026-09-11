@@ -100,8 +100,8 @@ $_ld_org = [
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-  <link rel="stylesheet" href="<?= SITE_URL ?>/css/style.css">
-  <link rel="stylesheet" href="<?= SITE_URL ?>/css/star-carousel.css">
+  <link rel="stylesheet" href="<?= SITE_URL ?>/css/style.css?v=<?= @filemtime(__DIR__ . '/../css/style.css') ?: '1' ?>">
+  <link rel="stylesheet" href="<?= SITE_URL ?>/css/star-carousel.css?v=<?= @filemtime(__DIR__ . '/../css/star-carousel.css') ?: '1' ?>">
   <?= isset($extra_css) ? $extra_css : '' ?>
   <script>window.tpaApiUrl = '<?= SITE_URL ?>/api/contact-form.php';</script>
 </head>

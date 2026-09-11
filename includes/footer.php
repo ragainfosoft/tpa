@@ -66,7 +66,7 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.3/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.3/ScrollTrigger.min.js"></script>
-  <script src="<?= SITE_URL ?>/js/main.js"></script>
+  <script src="<?= SITE_URL ?>/js/main.js?v=<?= @filemtime(__DIR__ . '/../js/main.js') ?: '1' ?>"></script>
   <?= isset($extra_js) ? $extra_js : '' ?>
   </body>
 
